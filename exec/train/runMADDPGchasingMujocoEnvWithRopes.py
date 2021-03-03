@@ -36,7 +36,7 @@ minibatchSize = 1024#
 # arguments: numWolves numSheeps numMasters saveAllmodels = True or False
 
 def main():
-    debug = 0
+    debug = 1
     if debug:
 
         damping=0.0
@@ -47,9 +47,9 @@ def main():
         numWolves = 1
         numSheeps = 1
         numMasters = 1
-        saveAllmodels = True
         maxTimeStep = 25
         visualize=False
+        saveAllmodels = True
 
     else:
         print(sys.argv)

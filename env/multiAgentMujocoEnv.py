@@ -268,9 +268,9 @@ class Observe:
         return np.concatenate([agentVel] + [agentPos] + blocksInfo + posInfo + velInfo)
 
 class ReshapeAction:
-    def __init__(self):
+    def __init__(self,sensitivity):
         self.actionDim = 2
-        self.sensitivity = 5
+        self.sensitivity = sensitivity
 
     def __call__(self, action): # action: tuple of dim (5,1)
         # print(action)

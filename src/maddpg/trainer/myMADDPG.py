@@ -3,7 +3,7 @@ import numpy as np
 import os
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 import tensorflow.contrib.layers as layers
-import maddpg.maddpgAlgor.common.tf_util as U
+import src.maddpg.common.tf_util as U
 
 
 class BuildMADDPGModels:

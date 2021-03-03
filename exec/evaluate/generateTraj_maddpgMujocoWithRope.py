@@ -60,7 +60,7 @@ def generateSingleCondition(condition):
         damping = float(condition['damping'])
         frictionloss = float(condition['frictionloss'])
         masterForce = float(condition['masterForce'])
-        evaluateEpisode = 60000
+        evaluateEpisode = 10
         numWolves = 1
         numSheeps = 1
         numMasters = 1
@@ -72,6 +72,7 @@ def generateSingleCondition(condition):
         visualizeTraj = True
         makeVideo=False
 
+    numTrajToSample = 2
     print("maddpg: , saveTraj: {}, visualize: {},damping; {},frictionloss: {}".format( str(saveTraj), str(visualizeMujoco),damping,frictionloss))
 
 
@@ -188,18 +189,24 @@ def generateSingleCondition(condition):
 
 
     trajList = []
-    numTrajToSample = 5
+
     for i in range(numTrajToSample):
         np.random.seed(i)
         traj = sampleTrajectory(policy)
-        trajList.append(list(traj))
 
+        trajList.append(list(traj))
+    prit('save',saveTraj)
     # saveTraj
     if saveTraj:
         trajFileName = "maddpg{}wolves{}sheep{}blocks{}eps{}step{}Traj".format(numWolves, numSheeps, numMasters, maxEpisode, maxTimeStep)
 
-        trajFolder= os.path.join(dataFolder,'trajectory')
-        trajSavePath = os.path.join(trajFolder,'MADDPGMujocoEnvWithRope', trajFileName)
+        trajFolder= os.path.join(dataFolder,'trajectory','MADDPGMujocoEnvWithRope','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
+
+        if not os.path.exists(trajFolder):
+            os.makedirs(trajFolder)
+
+        trajSavePath = os.path.join(trajFolder, trajFileName)
+        print(trajSavePath)
         saveToPickle(trajList, trajSavePath)
 
 
@@ -218,9 +225,9 @@ def generateSingleCondition(condition):
 
 def main():
     manipulatedVariables = OrderedDict()
-    manipulatedVariables['damping'] = [0.0, 1.0]
-    manipulatedVariables['frictionloss'] = [0.0, 0.2, 0.4]
-    manipulatedVariables['masterForce']=[0.0, 2.0]
+    manipulatedVariables['damping'] = [0.0]#[0.0, 1.0]
+    manipulatedVariables['frictionloss'] =[0.4]# [0.0, 0.2, 0.4]
+    manipulatedVariables['masterForce']=[1.0]#[0.0, 2.0]
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]
     for condition in conditions:

@@ -1,8 +1,8 @@
 import numpy as np
 import tensorflow as tf
-import maddpg.maddpgAlgor.common.tf_util as U
-from maddpg.maddpgAlgor import AgentTrainer
-from maddpg.maddpgAlgor.trainer.replay_buffer import ReplayBuffer
+import src.maddpg.common.tf_util as U
+from src.maddpg import AgentTrainer
+from src.maddpg.trainer.replay_buffer import ReplayBuffer
 
 def p_train(observPlaceHolderList, actionSpaceList, agentIndex, p_func, q_func, optimizer,grad_norm_clipping,
             ddpg, num_units=64, scope="trainer", reuse=None):
@@ -11,7 +11,7 @@ def p_train(observPlaceHolderList, actionSpaceList, agentIndex, p_func, q_func, 
         # set up placeholders
         actionPlaceHolderList = [tf.placeholder(dtype=tf.float32, shape=[None] + [actionSpaceList[i].n], name="action"+str(i)) for i in range(len(actionSpaceList))]
 
-        policyNetInput = observPlaceHolderList[agentIndex] # personal observation 
+        policyNetInput = observPlaceHolderList[agentIndex] # personal observation
         policyOutputShape = int(actionSpaceList[agentIndex].n)
         policyTrainOutput = p_func(policyNetInput, policyOutputShape, scope="p_func", num_units=num_units)
         policyNetVariables = U.scope_vars(U.absolute_scope_name("p_func"))
@@ -19,7 +19,7 @@ def p_train(observPlaceHolderList, actionSpaceList, agentIndex, p_func, q_func, 
         sampleNoise = tf.random_uniform(tf.shape(policyTrainOutput), seed = 0)
         actionSample = U.softmax(policyTrainOutput - tf.log(-tf.log(sampleNoise)), axis=-1) # output of function act
         p_reg = tf.reduce_mean(tf.square(policyTrainOutput))
-        
+
         actionInputPlaceHolderList = actionPlaceHolderList + []
         actionInputPlaceHolderList[agentIndex] = actionSample
 
