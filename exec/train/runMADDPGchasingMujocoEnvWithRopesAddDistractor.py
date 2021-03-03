@@ -147,7 +147,7 @@ def main():
     reshapeActionList = [ReshapeAction(5),ReshapeAction(5),ReshapeAction(masterForce),ReshapeAction(5)]
     transit=TransitionFunctionWithoutXPos(physicsSimulation, numSimulationFrames, visualize,isTerminal, reshapeActionList)
 
-    observeOneAgent = lambda agentID: Observe(agentID, wolvesID, sheepsID, masterID, getPosFromAgentState,getVelFromAgentState)
+    observeOneAgent = lambda agentID: Observe(agentID, wolvesID, sheepsID + masterID +distractorID, [], getPosFromAgentState,getVelFromAgentState)
     observe = lambda state: [observeOneAgent(agentID)(state) for agentID in range(numAgent)]
     initObsForParams = observe(reset())
     print(reset())

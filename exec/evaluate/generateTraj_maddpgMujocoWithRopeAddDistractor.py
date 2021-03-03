@@ -143,7 +143,6 @@ def generateSingleCondition(condition):
     qVelInit = (0, ) * numAxis
     qPosInitNoise = 0.4
     qVelInitNoise = 0
-    numAgent = 2
     tiedAgentId = [0, 2]
     ropePartIndex = list(range(numAgent, numAgent + numKnots))
     maxRopePartLength = 0.06
@@ -156,7 +155,7 @@ def generateSingleCondition(condition):
 
     sampleTrajectory = SampleTrajectory(maxRunningStepsToSample, transit, isTerminal, rewardFunc, reset)
 
-    observeOneAgent = lambda agentID: Observe(agentID, wolvesID, sheepsID, masterID, getPosFromAgentState, getVelFromAgentState)
+    observeOneAgent = lambda agentID: Observe(agentID, wolvesID, sheepsID + masterID +distractorID, [], getPosFromAgentState, getVelFromAgentState)
     observe = lambda state: [observeOneAgent(agentID)(state) for agentID in range(numAgent)]
     print(reset())
     initObsForParams = observe(reset())
