@@ -36,11 +36,11 @@
             <site name="dragger0" pos="-0 0 0" type="sphere" size="0.001"/>
     </body>
 
-        <body name="distractor0" pos="0 0 0">
+    <body name="distractor0" pos="0 0 0">
             <joint axis="1 0 0" damping="2.5" frictionloss="0" name="distractor00" pos="0 0 0" type="slide"/>
             <joint axis="0 1 0" damping="2.5" frictionloss="0" name="distractor01" pos="0 0 0" type="slide"/>
             <geom type="cylinder" size="0.075 0.075" mass="1" conaffinity="1" solimp="0.9 0.9999 0.001 0.5 1" solref="0.5 0.2" rgba="0 1 1 0.1"/>
-            <site name="dragger0" pos="-0 0 0" type="sphere" size="0.001"/>
+            <site name="distractor0" pos="-0 0 0" type="sphere" size="0.001"/>
     </body>
 <!--site part-->
     <body name="middle1" pos="0 0 0">

@@ -36,7 +36,7 @@ minibatchSize = 1024#
 # arguments: numWolves numSheeps numMasters saveAllmodels = True or False
 
 def main():
-    debug = 0
+    debug = 1
     if debug:
 
         damping=0.0
@@ -104,6 +104,9 @@ def main():
         list(rewardWolf(state, action, nextState)) + list(rewardSheep(state, action, nextState))\
         + list(rewardMaster(state, action, nextState) + list(rewardDistractor(state, action, nextState)))
 
+    physicsDynamicsPath=os.path.join(dirName,'..','..','env','xml','leasedAddDistractor.xml')
+    with open(physicsDynamicsPath) as f:
+        xml_string = f.read()
 
     makePropertyList=MakePropertyList(transferNumberListToStr)
 
@@ -111,7 +114,6 @@ def main():
     keyNameList=[0,1]
     valueList=[[damping,damping]]*len(geomIds)
     dampngParameter=makePropertyList(geomIds,keyNameList,valueList)
-
     changeJointDampingProperty=lambda envDict,geomPropertyDict:changeJointProperty(envDict,geomPropertyDict,'@damping')
 
     geomIds=[1,2,3,4]
@@ -120,18 +122,11 @@ def main():
     frictionlossParameter=makePropertyList(geomIds,keyNameList,valueList)
     changeJointFrictionlossProperty=lambda envDict,geomPropertyDict:changeJointProperty(envDict,geomPropertyDict,'@frictionloss')
 
-    physicsDynamicsPath=os.path.join(dirName,'..','..','env','xml','leasedAddDistractor.xml')
-    with open(physicsDynamicsPath) as f:
-        xml_string = f.read()
-
-
     envXmlDict = xmltodict.parse(xml_string.strip())
     envXmlPropertyDictList=[dampngParameter,frictionlossParameter]
     changeEnvXmlPropertFuntionyList=[changeJointDampingProperty,changeJointFrictionlossProperty]
     for propertyDict,changeXmlProperty in zip(envXmlPropertyDictList,changeEnvXmlPropertFuntionyList):
         envXmlDict=changeXmlProperty(envXmlDict,propertyDict)
-
-
 
     envXml=xmltodict.unparse(envXmlDict)
     physicsModel = mujoco.load_model_from_xml(envXml)
@@ -150,7 +145,7 @@ def main():
 
     numSimulationFrames=10
     isTerminal= lambda state: False
-    reshapeActionList = [ReshapeAction(5),ReshapeAction(5),ReshapeAction(masterForce)]
+    reshapeActionList = [ReshapeAction(5),ReshapeAction(5),ReshapeAction(masterForce),ReshapeAction(5)]
     transit=TransitionFunctionWithoutXPos(physicsSimulation, numSimulationFrames, visualize,isTerminal, reshapeActionList)
 
     observeOneAgent = lambda agentID: Observe(agentID, wolvesID, sheepsID, masterID, getPosFromAgentState,getVelFromAgentState)
@@ -193,7 +188,7 @@ def main():
 
     getAgentModel = lambda agentId: lambda: trainMADDPGModels.getTrainedModels()[agentId]
     getModelList = [getAgentModel(i) for i in range(numAgent)]
-    modelSaveRate = 1000
+    modelSaveRate = 10
     fileName = "maddpg{}episodes{}step_agent".format(maxEpisode, maxTimeStep)
 
     modelPath = os.path.join(modelFolder, fileName)
