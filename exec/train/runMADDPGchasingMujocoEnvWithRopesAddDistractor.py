@@ -72,7 +72,7 @@ def main():
 
     dataFolder = os.path.join(dirName, '..','..', 'data')
     mainModelFolder = os.path.join(dataFolder,'model')
-    modelFolder = os.path.join(mainModelFolder, 'MADDPGMujocoEnvWithRope','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
+    modelFolder = os.path.join(mainModelFolder, 'MADDPGMujocoEnvWithRopeAddDistractor','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
 
     if not os.path.exists(modelFolder):
         os.makedirs(modelFolder)
@@ -144,7 +144,7 @@ def main():
     qPosInitNoise = 0.6
     qVelInitNoise = 0
     tiedAgentId = [0, 2]
-    ropePartIndex = list(range(3, 12))
+    ropePartIndex = list(range(numAgent, numAgent+numKnots))
     maxRopePartLength = 0.06
     reset = ResetUniformWithoutXPosForLeashed(physicsSimulation, qPosInit, qVelInit, numAgent, tiedAgentId,ropePartIndex, maxRopePartLength, qPosInitNoise, qVelInitNoise)
 
