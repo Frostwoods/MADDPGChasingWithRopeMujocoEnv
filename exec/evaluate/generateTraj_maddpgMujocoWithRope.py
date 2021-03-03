@@ -104,8 +104,6 @@ def generateSingleCondition(condition):
     rewardFunc = lambda state, action, nextState: \
         list(rewardWolf(state, action, nextState)) + list(rewardSheep(state, action, nextState))+list(rewardMaster(state, action, nextState))
 
-    dirName = os.path.dirname(__file__)
-    # physicsDynamicsPath=os.path.join(dirName,'..','..','environment','mujocoEnv','rope','leased.xml')
 
     makePropertyList=MakePropertyList(transferNumberListToStr)
 
@@ -124,7 +122,6 @@ def generateSingleCondition(condition):
 
 
     physicsDynamicsPath = os.path.join(dirName, '..', '..', 'env', 'xml', 'leasedNew2.xml')
-
     with open(physicsDynamicsPath) as f:
         xml_string = f.read()
 
@@ -133,10 +130,6 @@ def generateSingleCondition(condition):
     changeEnvXmlPropertFuntionyList=[changeJointDampingProperty,changeJointFrictionlossProperty]
     for propertyDict,changeXmlProperty in zip(envXmlPropertyDictList,changeEnvXmlPropertFuntionyList):
         envXmlDict=changeXmlProperty(envXmlDict,propertyDict)
-
-
-
-
 
     envXml=xmltodict.unparse(envXmlDict)
     physicsModel = mujoco.load_model_from_xml(envXml)
