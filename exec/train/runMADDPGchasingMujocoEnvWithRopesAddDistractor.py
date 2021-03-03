@@ -90,8 +90,8 @@ def main():
     distractorSize = 0.075
     entitiesSizeList = [wolfSize] * numWolves + [sheepSize] * numSheeps + [masterSize] * numMasters + [distractorSize] * numDistractor
 
-
-    isCollision = IsCollision(getPosFromAgentState)
+    killZone = 0.01
+    isCollision = IsCollision(getPosFromAgentState, killZone)
     punishForOutOfBound = PunishForOutOfBound()
     rewardSheep = RewardSheep(wolvesID, sheepsID, entitiesSizeList, getPosFromAgentState, isCollision, punishForOutOfBound)
     rewardWolf = RewardWolf(wolvesID, sheepsID, entitiesSizeList, isCollision)

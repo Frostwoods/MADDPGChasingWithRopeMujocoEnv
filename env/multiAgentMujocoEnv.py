@@ -90,13 +90,14 @@ class TransitionFunctionWithoutXPos:
 
 
 class IsCollision:
-    def __init__(self, getPosFromState):
+    def __init__(self, getPosFromState, killZone = 0):
         self.getPosFromState = getPosFromState
+        self.killZone = killZone
 
     def __call__(self, agent1State, agent2State, agent1Size, agent2Size):
         posDiff = self.getPosFromState(agent1State) - self.getPosFromState(agent2State)
         dist = np.sqrt(np.sum(np.square(posDiff)))
-        minDist = agent1Size + agent2Size
+        minDist = agent1Size + agent2Size + self.killZone
         return True if dist < minDist else False
 
 

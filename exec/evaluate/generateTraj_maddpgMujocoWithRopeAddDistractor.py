@@ -73,6 +73,8 @@ def generateSingleCondition(condition):
         makeVideo=False
 
     evalNum = 2
+    maxRunningStepsToSample = 100
+
     print("maddpg: , saveTraj: {}, visualize: {},damping; {},frictionloss: {}".format( str(saveTraj), str(visualizeMujoco),damping,frictionloss))
 
 
@@ -104,26 +106,26 @@ def generateSingleCondition(condition):
     rewardFunc = lambda state, action, nextState: \
         list(rewardWolf(state, action, nextState)) + list(rewardSheep(state, action, nextState))+list(rewardMaster(state, action, nextState))
 
+    physicsDynamicsPath=os.path.join(dirName,'..','..','env','xml','leasedAddDistractor.xml')
+    with open(physicsDynamicsPath) as f:
+        xml_string = f.read()
 
     makePropertyList=MakePropertyList(transferNumberListToStr)
 
-    geomIds=[1,2,3]
+    geomIds=[1,2,3,4]
     keyNameList=[0,1]
     valueList=[[damping,damping]]*len(geomIds)
     dampngParameter=makePropertyList(geomIds,keyNameList,valueList)
 
     changeJointDampingProperty=lambda envDict,geomPropertyDict:changeJointProperty(envDict,geomPropertyDict,'@damping')
 
-    geomIds=[1,2,3]
+    geomIds=[1,2,3,4]
     keyNameList=[0,1]
     valueList=[[frictionloss,frictionloss]]*len(geomIds)
     frictionlossParameter=makePropertyList(geomIds,keyNameList,valueList)
     changeJointFrictionlossProperty=lambda envDict,geomPropertyDict:changeJointProperty(envDict,geomPropertyDict,'@frictionloss')
 
 
-    physicsDynamicsPath = os.path.join(dirName, '..', '..', 'env', 'xml', 'leasedNew2.xml')
-    with open(physicsDynamicsPath) as f:
-        xml_string = f.read()
 
     envXmlDict = xmltodict.parse(xml_string.strip())
     envXmlPropertyDictList=[dampngParameter,frictionlossParameter]
@@ -135,21 +137,23 @@ def generateSingleCondition(condition):
     physicsModel = mujoco.load_model_from_xml(envXml)
     physicsSimulation = mujoco.MjSim(physicsModel)
 
-    qPosInit = (0, ) * 24
-    qVelInit = (0, ) * 24
+    numKnots = 9
+    numAxis = (numKnots + numAgent) * 2
+    qPosInit = (0, ) * numAxis
+    qVelInit = (0, ) * numAxis
     qPosInitNoise = 0.4
     qVelInitNoise = 0
     numAgent = 2
     tiedAgentId = [0, 2]
-    ropePartIndex = list(range(3, 12))
+    ropePartIndex = list(range(numAgent, numAgent + numKnots))
     maxRopePartLength = 0.06
     reset = ResetUniformWithoutXPosForLeashed(physicsSimulation, qPosInit, qVelInit, numAgent, tiedAgentId,ropePartIndex, maxRopePartLength, qPosInitNoise, qVelInitNoise)
     numSimulationFrames=10
     isTerminal= lambda state: False
-    reshapeActionList = [ReshapeAction(5),ReshapeAction(5),ReshapeAction(masterForce)]
+    reshapeActionList = [ReshapeAction(5),ReshapeAction(5),ReshapeAction(masterForce),ReshapeAction(5)]
     transit=TransitionFunctionWithoutXPos(physicsSimulation, numSimulationFrames, visualizeMujoco,isTerminal, reshapeActionList)
 
-    maxRunningStepsToSample = 100
+
     sampleTrajectory = SampleTrajectory(maxRunningStepsToSample, transit, isTerminal, rewardFunc, reset)
 
     observeOneAgent = lambda agentID: Observe(agentID, wolvesID, sheepsID, masterID, getPosFromAgentState, getVelFromAgentState)
@@ -169,7 +173,7 @@ def generateSingleCondition(condition):
 
     dataFolder = os.path.join(dirName, '..','..', 'data')
     mainModelFolder = os.path.join(dataFolder,'model')
-    modelFolder = os.path.join(mainModelFolder, 'MADDPGMujocoEnvWithRope','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
+    modelFolder = os.path.join(mainModelFolder, 'MADDPGMujocoEnvWithRopeAddDistractor','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
 
     fileName = "maddpg{}episodes{}step_agent".format(maxEpisode, maxTimeStep)
 
@@ -193,7 +197,7 @@ def generateSingleCondition(condition):
     if saveTraj:
         # trajFileName = "maddpg{}wolves{}sheep{}blocks{}eps{}step{}Traj".format(numWolves, numSheeps, numMasters, maxEpisode, maxTimeStep)
 
-        trajectoriesSaveDirectory= os.path.join(dataFolder,'trajectory','MADDPGMujocoEnvWithRope')
+        trajectoriesSaveDirectory= os.path.join(dataFolder,'trajectory','MADDPGMujocoEnvWithRopeAddDistractor')
 
         if not os.path.exists(trajectoriesSaveDirectory):
             os.makedirs(trajectoriesSaveDirectory)
@@ -208,7 +212,7 @@ def generateSingleCondition(condition):
     # visualize
     if visualizeTraj:
 
-        pictureFolder = os.path.join(dataFolder, 'demo', 'MADDPGMujocoEnvWithRope','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
+        pictureFolder = os.path.join(dataFolder, 'demo', 'MADDPGMujocoEnvWithRopeAddDistractor','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
 
         if not os.path.exists(pictureFolder):
             os.makedirs(pictureFolder)
