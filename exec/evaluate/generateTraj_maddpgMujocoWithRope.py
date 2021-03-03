@@ -18,7 +18,7 @@ from env.multiAgentMujocoEnv import RewardSheep, RewardWolf, Observe, IsCollisio
 
 from src.maddpg.trainer.myMADDPG import ActOneStep, BuildMADDPGModels, actByPolicyTrainNoisy
 
-from src.functionTools.loadSaveModel import saveToPickle, restoreVariables
+from src.functionTools.loadSaveModel import saveToPickle, restoreVariables,GetSavePath
 from src.functionTools.trajectory import SampleTrajectory
 from src.functionTools.editEnvXml import transferNumberListToStr,MakePropertyList,changeJointProperty
 from src.visualize.visualizeMultiAgent import Render
@@ -48,7 +48,7 @@ def generateSingleCondition(condition):
         numMasters = 1
         maxTimeStep = 25
 
-        saveTraj=False
+        saveTraj=True
         saveImage=True
         visualizeMujoco=False
         visualizeTraj = True
@@ -66,13 +66,13 @@ def generateSingleCondition(condition):
         numMasters = 1
         maxTimeStep = 25
 
-        saveTraj=False
+        saveTraj=True
         saveImage=True
         visualizeMujoco=False
         visualizeTraj = True
         makeVideo=False
 
-    numTrajToSample = 2
+    evalNum = 2
     print("maddpg: , saveTraj: {}, visualize: {},damping; {},frictionloss: {}".format( str(saveTraj), str(visualizeMujoco),damping,frictionloss))
 
 
@@ -190,35 +190,37 @@ def generateSingleCondition(condition):
 
     trajList = []
 
-    for i in range(numTrajToSample):
+    for i in range(evalNum):
         np.random.seed(i)
         traj = sampleTrajectory(policy)
 
         trajList.append(list(traj))
-    prit('save',saveTraj)
+    print('save',saveTraj)
     # saveTraj
     if saveTraj:
-        trajFileName = "maddpg{}wolves{}sheep{}blocks{}eps{}step{}Traj".format(numWolves, numSheeps, numMasters, maxEpisode, maxTimeStep)
+        # trajFileName = "maddpg{}wolves{}sheep{}blocks{}eps{}step{}Traj".format(numWolves, numSheeps, numMasters, maxEpisode, maxTimeStep)
 
-        trajFolder= os.path.join(dataFolder,'trajectory','MADDPGMujocoEnvWithRope','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
+        trajectoriesSaveDirectory= os.path.join(dataFolder,'trajectory','MADDPGMujocoEnvWithRope')
 
-        if not os.path.exists(trajFolder):
-            os.makedirs(trajFolder)
+        if not os.path.exists(trajectoriesSaveDirectory):
+            os.makedirs(trajectoriesSaveDirectory)
 
-        trajSavePath = os.path.join(trajFolder, trajFileName)
-        print(trajSavePath)
-        saveToPickle(trajList, trajSavePath)
+        trajectorySaveExtension = '.pickle'
+        fixedParameters = {'damping': damping,'frictionloss':frictionloss,'masterForce':masterForce,'evalNum':evalNum,'evaluateEpisode':evaluateEpisode}
+        generateTrajectorySavePath = GetSavePath(trajectoriesSaveDirectory, trajectorySaveExtension, fixedParameters)
+        trajectorySavePath = generateTrajectorySavePath({})
+        saveToPickle(trajList, trajectorySavePath)
 
 
     # visualize
     if visualizeTraj:
 
-        demoFolder = os.path.join(dataFolder, 'demo', 'MADDPGMujocoEnvWithRope','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
+        pictureFolder = os.path.join(dataFolder, 'demo', 'MADDPGMujocoEnvWithRope','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
 
         if not os.path.exists(demoFolder):
             os.makedirs(demoFolder)
         entitiesColorList = [wolfColor] * numWolves + [sheepColor] * numSheeps + [masterColor] * numMasters
-        render = Render(entitiesSizeList, entitiesColorList, numAgents,demoFolder,saveImage, getPosFromAgentState)
+        render = Render(entitiesSizeList, entitiesColorList, numAgents,pictureFolder,saveImage, getPosFromAgentState)
         trajToRender = np.concatenate(trajList)
         render(trajToRender)
 
@@ -232,10 +234,11 @@ def main():
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]
     for condition in conditions:
         print(condition)
-        try:
-            generateSingleCondition(condition)
-        except:
-            continue
+        generateSingleCondition(condition)
+        # try:
+        #     generateSingleCondition(condition)
+        # except:
+        #     continue
 
 if __name__ == '__main__':
     main()
