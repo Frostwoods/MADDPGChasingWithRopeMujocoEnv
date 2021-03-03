@@ -46,6 +46,7 @@ def generateSingleCondition(condition):
         numWolves = 1
         numSheeps = 1
         numMasters = 1
+        numDistractor = 1
         maxTimeStep = 25
 
         saveTraj=True
@@ -64,11 +65,12 @@ def generateSingleCondition(condition):
         numWolves = 1
         numSheeps = 1
         numMasters = 1
+        numDistractor = 1
         maxTimeStep = 25
 
         saveTraj=True
         saveImage=True
-        visualizeMujoco=False
+        visualizeMujoco=True
         visualizeTraj = True
         makeVideo=False
 
@@ -78,33 +80,31 @@ def generateSingleCondition(condition):
     print("maddpg: , saveTraj: {}, visualize: {},damping; {},frictionloss: {}".format( str(saveTraj), str(visualizeMujoco),damping,frictionloss))
 
 
-    numAgents = numWolves + numSheeps+numMasters
-    numEntities = numAgents + numMasters
+    numAgent = numWolves + numSheeps + numMasters +  numDistractor
     wolvesID = [0]
     sheepsID = [1]
     masterID = [2]
+    distractorID = [3]
 
     wolfSize = 0.075
     sheepSize = 0.05
     masterSize = 0.075
-    entitiesSizeList = [wolfSize] * numWolves + [sheepSize] * numSheeps + [masterSize] * numMasters
-
-    wolfMaxSpeed = 1.0
-    blockMaxSpeed = None
+    distractorSize = 0.075
+    entitiesSizeList = [wolfSize] * numWolves + [sheepSize] * numSheeps + [masterSize] * numMasters + [distractorSize] * numDistractor
 
 
-    entitiesMovableList = [True] * numAgents + [False] * numMasters
-    massList = [1.0] * numEntities
+    entitiesMovableList = [True] * numAgent + [False] * numMasters
 
-    isCollision = IsCollision(getPosFromAgentState)
+    killZone = 0.01
+    isCollision = IsCollision(getPosFromAgentState, killZone)
     punishForOutOfBound = PunishForOutOfBound()
-    rewardSheep = RewardSheep(wolvesID, sheepsID, entitiesSizeList, getPosFromAgentState, isCollision,punishForOutOfBound)
-
-
+    rewardSheep = RewardSheep(wolvesID, sheepsID, entitiesSizeList, getPosFromAgentState, isCollision, punishForOutOfBound)
     rewardWolf = RewardWolf(wolvesID, sheepsID, entitiesSizeList, isCollision)
+    rewardDistractor = RewardSheep(wolvesID+sheepsID+masterID, distractorID, entitiesSizeList, getPosFromAgentState, isCollision,punishForOutOfBound)
     rewardMaster= lambda state, action, nextState: [-reward  for reward in rewardWolf(state, action, nextState)]
     rewardFunc = lambda state, action, nextState: \
-        list(rewardWolf(state, action, nextState)) + list(rewardSheep(state, action, nextState))+list(rewardMaster(state, action, nextState))
+        list(rewardWolf(state, action, nextState)) + list(rewardSheep(state, action, nextState))\
+        + list(rewardMaster(state, action, nextState) )+ list(rewardDistractor(state, action, nextState))
 
     physicsDynamicsPath=os.path.join(dirName,'..','..','env','xml','leasedAddDistractor.xml')
     with open(physicsDynamicsPath) as f:
@@ -157,19 +157,19 @@ def generateSingleCondition(condition):
     sampleTrajectory = SampleTrajectory(maxRunningStepsToSample, transit, isTerminal, rewardFunc, reset)
 
     observeOneAgent = lambda agentID: Observe(agentID, wolvesID, sheepsID, masterID, getPosFromAgentState, getVelFromAgentState)
-    observe = lambda state: [observeOneAgent(agentID)(state) for agentID in range(numAgents)]
-
+    observe = lambda state: [observeOneAgent(agentID)(state) for agentID in range(numAgent)]
+    print(reset())
     initObsForParams = observe(reset())
     obsShape = [initObsForParams[obsID].shape[0] for obsID in range(len(initObsForParams))]
-
+    print('24e',obsShape)
     worldDim = 2
     actionDim = worldDim * 2 + 1
 
     layerWidth = [128, 128]
 
     # ------------ model ------------------------
-    buildMADDPGModels = BuildMADDPGModels(actionDim, numAgents, obsShape)
-    modelsList = [buildMADDPGModels(layerWidth, agentID) for agentID in range(numAgents)]
+    buildMADDPGModels = BuildMADDPGModels(actionDim, numAgent, obsShape)
+    modelsList = [buildMADDPGModels(layerWidth, agentID) for agentID in range(numAgent)]
 
     dataFolder = os.path.join(dirName, '..','..', 'data')
     mainModelFolder = os.path.join(dataFolder,'model')
@@ -177,7 +177,7 @@ def generateSingleCondition(condition):
 
     fileName = "maddpg{}episodes{}step_agent".format(maxEpisode, maxTimeStep)
 
-    modelPaths = [os.path.join(modelFolder,  fileName + str(i) +str(evaluateEpisode)+'eps') for i in range(numAgents)]
+    modelPaths = [os.path.join(modelFolder,  fileName + str(i) +str(evaluateEpisode)+'eps') for i in range(numAgent)]
 
     [restoreVariables(model, path) for model, path in zip(modelsList, modelPaths)]
 
@@ -217,7 +217,7 @@ def generateSingleCondition(condition):
         if not os.path.exists(pictureFolder):
             os.makedirs(pictureFolder)
         entitiesColorList = [wolfColor] * numWolves + [sheepColor] * numSheeps + [masterColor] * numMasters
-        render = Render(entitiesSizeList, entitiesColorList, numAgents,pictureFolder,saveImage, getPosFromAgentState)
+        render = Render(entitiesSizeList, entitiesColorList, numAgent,pictureFolder,saveImage, getPosFromAgentState)
         trajToRender = np.concatenate(trajList)
         render(trajToRender)
 

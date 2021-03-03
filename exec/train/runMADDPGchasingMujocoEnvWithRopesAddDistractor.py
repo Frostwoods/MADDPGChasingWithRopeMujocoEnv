@@ -95,14 +95,13 @@ def main():
     punishForOutOfBound = PunishForOutOfBound()
     rewardSheep = RewardSheep(wolvesID, sheepsID, entitiesSizeList, getPosFromAgentState, isCollision, punishForOutOfBound)
     rewardWolf = RewardWolf(wolvesID, sheepsID, entitiesSizeList, isCollision)
-    rewardDistractor = RewardSheep(wolvesID+sheepsID+masterID, distractorID, entitiesSizeList, getPosFromAgentState, isCollision,
-                              punishForOutOfBound)
+    rewardDistractor = RewardSheep(wolvesID+sheepsID+masterID, distractorID, entitiesSizeList, getPosFromAgentState, isCollision,punishForOutOfBound)
     rewardMaster= lambda state, action, nextState: [-reward  for reward in rewardWolf(state, action, nextState)]
 
 
     rewardFunc = lambda state, action, nextState: \
         list(rewardWolf(state, action, nextState)) + list(rewardSheep(state, action, nextState))\
-        + list(rewardMaster(state, action, nextState) + list(rewardDistractor(state, action, nextState)))
+        + list(rewardMaster(state, action, nextState)) + list(rewardDistractor(state, action, nextState))
 
     physicsDynamicsPath=os.path.join(dirName,'..','..','env','xml','leasedAddDistractor.xml')
     with open(physicsDynamicsPath) as f:
@@ -151,8 +150,9 @@ def main():
     observeOneAgent = lambda agentID: Observe(agentID, wolvesID, sheepsID, masterID, getPosFromAgentState,getVelFromAgentState)
     observe = lambda state: [observeOneAgent(agentID)(state) for agentID in range(numAgent)]
     initObsForParams = observe(reset())
+    print(reset())
     obsShape = [initObsForParams[obsID].shape[0] for obsID in range(len(initObsForParams))]
-
+    print('24e',obsShape)
     worldDim = 2
     actionDim = worldDim * 2 + 1
 
