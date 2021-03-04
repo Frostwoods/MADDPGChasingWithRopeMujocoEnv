@@ -28,6 +28,7 @@ from src.visualize.visualizeMultiAgent import Render
 wolfColor = np.array([0.85, 0.35, 0.35])
 sheepColor = np.array([0.35, 0.85, 0.35])
 masterColor= np.array([0.35, 0.35, 0.85])
+distractorColor = np.array([0.35, 0.85, 0.85])
 blockColor = np.array([0.25, 0.25, 0.25])
 
 maxEpisode = 60000
@@ -61,7 +62,7 @@ def generateSingleCondition(condition):
         damping = float(condition['damping'])
         frictionloss = float(condition['frictionloss'])
         masterForce = float(condition['masterForce'])
-        evaluateEpisode = 10
+        evaluateEpisode = 60000
         numWolves = 1
         numSheeps = 1
         numMasters = 1
@@ -76,7 +77,7 @@ def generateSingleCondition(condition):
 
     evalNum = 2
     maxRunningStepsToSample = 100
-
+    modelSaveName = 'MADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed'
     print("maddpg: , saveTraj: {}, visualize: {},damping; {},frictionloss: {}".format( str(saveTraj), str(visualizeMujoco),damping,frictionloss))
 
 
@@ -172,7 +173,7 @@ def generateSingleCondition(condition):
 
     dataFolder = os.path.join(dirName, '..','..', 'data')
     mainModelFolder = os.path.join(dataFolder,'model')
-    modelFolder = os.path.join(mainModelFolder, 'MADDPGMujocoEnvWithRopeAddDistractor','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
+    modelFolder = os.path.join(mainModelFolder, modelSaveName,'damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
 
     fileName = "maddpg{}episodes{}step_agent".format(maxEpisode, maxTimeStep)
 
@@ -196,7 +197,7 @@ def generateSingleCondition(condition):
     if saveTraj:
         # trajFileName = "maddpg{}wolves{}sheep{}blocks{}eps{}step{}Traj".format(numWolves, numSheeps, numMasters, maxEpisode, maxTimeStep)
 
-        trajectoriesSaveDirectory= os.path.join(dataFolder,'trajectory','MADDPGMujocoEnvWithRopeAddDistractor')
+        trajectoriesSaveDirectory= os.path.join(dataFolder,'trajectory',modelSaveName)
 
         if not os.path.exists(trajectoriesSaveDirectory):
             os.makedirs(trajectoriesSaveDirectory)
@@ -211,11 +212,11 @@ def generateSingleCondition(condition):
     # visualize
     if visualizeTraj:
 
-        pictureFolder = os.path.join(dataFolder, 'demo', 'MADDPGMujocoEnvWithRopeAddDistractor','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
+        pictureFolder = os.path.join(dataFolder, 'demo', modelSaveName,'damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
 
         if not os.path.exists(pictureFolder):
             os.makedirs(pictureFolder)
-        entitiesColorList = [wolfColor] * numWolves + [sheepColor] * numSheeps + [masterColor] * numMasters
+        entitiesColorList = [wolfColor] * numWolves + [sheepColor] * numSheeps + [masterColor] * numMasters + [masterColor] * numDistractor
         render = Render(entitiesSizeList, entitiesColorList, numAgent,pictureFolder,saveImage, getPosFromAgentState)
         trajToRender = np.concatenate(trajList)
         render(trajToRender)
@@ -223,9 +224,9 @@ def generateSingleCondition(condition):
 
 def main():
     manipulatedVariables = OrderedDict()
-    manipulatedVariables['damping'] = [0.0]#[0.0, 1.0]
+    manipulatedVariables['damping'] = [2.0]#[0.0, 1.0]
     manipulatedVariables['frictionloss'] =[0.4]# [0.0, 0.2, 0.4]
-    manipulatedVariables['masterForce']=[1.0]#[0.0, 2.0]
+    manipulatedVariables['masterForce']=[2.0]#[0.0, 2.0]
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]
     for condition in conditions:

@@ -36,7 +36,7 @@ minibatchSize = 1024#
 # arguments: numWolves numSheeps numMasters saveAllmodels = True or False
 
 def main():
-    debug = 1
+    debug = 0
     if debug:
 
         damping=0.0
@@ -72,7 +72,7 @@ def main():
 
     dataFolder = os.path.join(dirName, '..','..', 'data')
     mainModelFolder = os.path.join(dataFolder,'model')
-    modelFolder = os.path.join(mainModelFolder, 'MADDPGMujocoEnvWithRopeAddDistractor','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
+    modelFolder = os.path.join(mainModelFolder, 'MADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
 
     if not os.path.exists(modelFolder):
         os.makedirs(modelFolder)
@@ -188,7 +188,7 @@ def main():
 
     getAgentModel = lambda agentId: lambda: trainMADDPGModels.getTrainedModels()[agentId]
     getModelList = [getAgentModel(i) for i in range(numAgent)]
-    modelSaveRate = 10
+    modelSaveRate = 1000
     fileName = "maddpg{}episodes{}step_agent".format(maxEpisode, maxTimeStep)
 
     modelPath = os.path.join(modelFolder, fileName)
