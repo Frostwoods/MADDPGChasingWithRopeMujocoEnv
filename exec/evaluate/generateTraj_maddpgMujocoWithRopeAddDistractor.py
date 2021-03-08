@@ -71,11 +71,11 @@ def generateSingleCondition(condition):
 
         saveTraj=True
         saveImage=True
-        visualizeMujoco=True
+        visualizeMujoco=False
         visualizeTraj = True
         makeVideo=False
 
-    evalNum = 2
+    evalNum = 3
     maxRunningStepsToSample = 100
     modelSaveName = 'MADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed'
     print("maddpg: , saveTraj: {}, visualize: {},damping; {},frictionloss: {}".format( str(saveTraj), str(visualizeMujoco),damping,frictionloss))
@@ -224,18 +224,18 @@ def generateSingleCondition(condition):
 
 def main():
     manipulatedVariables = OrderedDict()
-    manipulatedVariables['damping'] = [2.0]#[0.0, 1.0]
-    manipulatedVariables['frictionloss'] =[0.4]# [0.0, 0.2, 0.4]
-    manipulatedVariables['masterForce']=[2.0]#[0.0, 2.0]
+    manipulatedVariables['damping'] = [0.0,1.0,2.0]#[0.0, 1.0]
+    manipulatedVariables['frictionloss'] =[0.0,0.2,0.4]# [0.0, 0.2, 0.4]
+    manipulatedVariables['masterForce']=[0.0,1.0,2.0]#[0.0, 2.0]
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]
     for condition in conditions:
         print(condition)
-        generateSingleCondition(condition)
-        # try:
-        #     generateSingleCondition(condition)
-        # except:
-        #     continue
+        # generateSingleCondition(condition)
+        try:
+            generateSingleCondition(condition)
+        except:
+            continue
 
 if __name__ == '__main__':
     main()
