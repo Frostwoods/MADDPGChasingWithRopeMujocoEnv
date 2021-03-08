@@ -10,6 +10,7 @@ logging.getLogger('tensorflow').setLevel(logging.ERROR)
 
 import xmltodict
 import mujoco_py as mujoco
+
 import itertools as it
 from collections import OrderedDict
 import numpy as np
@@ -28,9 +29,9 @@ from src.visualize.visualizeMultiAgent import Render
 wolfColor = np.array([0.85, 0.35, 0.35])
 sheepColor = np.array([0.35, 0.85, 0.35])
 masterColor= np.array([0.35, 0.35, 0.85])
+distractorColor = np.array([0.35, 0.85, 0.85])
 blockColor = np.array([0.25, 0.25, 0.25])
 
-maxEpisode = 60000
 
 
 
@@ -46,8 +47,10 @@ def generateSingleCondition(condition):
         numWolves = 1
         numSheeps = 1
         numMasters = 1
+        numDistractor = 1
         maxTimeStep = 25
 
+        maxEpisode = 60000
         saveTraj=True
         saveImage=True
         visualizeMujoco=False
@@ -60,10 +63,13 @@ def generateSingleCondition(condition):
         damping = float(condition['damping'])
         frictionloss = float(condition['frictionloss'])
         masterForce = float(condition['masterForce'])
-        evaluateEpisode = 10
+
+        maxEpisode = 120000
+        evaluateEpisode = 120000
         numWolves = 1
         numSheeps = 1
         numMasters = 1
+        numDistractor = 1
         maxTimeStep = 25
 
         saveTraj=True
@@ -72,39 +78,37 @@ def generateSingleCondition(condition):
         visualizeTraj = True
         makeVideo=False
 
-    evalNum = 2
+    evalNum = 3
     maxRunningStepsToSample = 100
-
+    modelSaveName = 'expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed'
     print("maddpg: , saveTraj: {}, visualize: {},damping; {},frictionloss: {}".format( str(saveTraj), str(visualizeMujoco),damping,frictionloss))
 
 
-    numAgents = numWolves + numSheeps+numMasters
-    numEntities = numAgents + numMasters
+    numAgent = numWolves + numSheeps + numMasters +  numDistractor
     wolvesID = [0]
     sheepsID = [1]
     masterID = [2]
+    distractorID = [3]
 
-    wolfSize = 0.075
+    wolfSize = 0.05
     sheepSize = 0.05
-    masterSize = 0.075
-    entitiesSizeList = [wolfSize] * numWolves + [sheepSize] * numSheeps + [masterSize] * numMasters
-
-    wolfMaxSpeed = 1.0
-    blockMaxSpeed = None
+    masterSize = 0.05
+    distractorSize = 0.05
+    entitiesSizeList = [wolfSize] * numWolves + [sheepSize] * numSheeps + [masterSize] * numMasters + [distractorSize] * numDistractor
 
 
-    entitiesMovableList = [True] * numAgents + [False] * numMasters
-    massList = [1.0] * numEntities
+    entitiesMovableList = [True] * numAgent + [False] * numMasters
 
-    isCollision = IsCollision(getPosFromAgentState)
+    killZone = 0.01
+    isCollision = IsCollision(getPosFromAgentState, killZone)
     punishForOutOfBound = PunishForOutOfBound()
-    rewardSheep = RewardSheep(wolvesID, sheepsID, entitiesSizeList, getPosFromAgentState, isCollision,punishForOutOfBound)
-
-
+    rewardSheep = RewardSheep(wolvesID, sheepsID, entitiesSizeList, getPosFromAgentState, isCollision, punishForOutOfBound)
     rewardWolf = RewardWolf(wolvesID, sheepsID, entitiesSizeList, isCollision)
+    rewardDistractor = RewardSheep(wolvesID+sheepsID+masterID, distractorID, entitiesSizeList, getPosFromAgentState, isCollision,punishForOutOfBound)
     rewardMaster= lambda state, action, nextState: [-reward  for reward in rewardWolf(state, action, nextState)]
     rewardFunc = lambda state, action, nextState: \
-        list(rewardWolf(state, action, nextState)) + list(rewardSheep(state, action, nextState))+list(rewardMaster(state, action, nextState))
+        list(rewardWolf(state, action, nextState)) + list(rewardSheep(state, action, nextState))\
+        + list(rewardMaster(state, action, nextState) )+ list(rewardDistractor(state, action, nextState))
 
     physicsDynamicsPath=os.path.join(dirName,'..','..','env','xml','leasedAddDistractor.xml')
     with open(physicsDynamicsPath) as f:
@@ -143,7 +147,6 @@ def generateSingleCondition(condition):
     qVelInit = (0, ) * numAxis
     qPosInitNoise = 0.4
     qVelInitNoise = 0
-    numAgent = 2
     tiedAgentId = [0, 2]
     ropePartIndex = list(range(numAgent, numAgent + numKnots))
     maxRopePartLength = 0.06
@@ -156,28 +159,30 @@ def generateSingleCondition(condition):
 
     sampleTrajectory = SampleTrajectory(maxRunningStepsToSample, transit, isTerminal, rewardFunc, reset)
 
-    observeOneAgent = lambda agentID: Observe(agentID, wolvesID, sheepsID, [], getPosFromAgentState, getVelFromAgentState)
-    observe = lambda state: [observeOneAgent(agentID)(state) for agentID in range(numAgents)]
+
+    observeOneAgent = lambda agentID: Observe(agentID, wolvesID, sheepsID + masterID +distractorID, [], getPosFromAgentState, getVelFromAgentState)
+    observe = lambda state: [observeOneAgent(agentID)(state) for agentID in range(numAgent)]
+    print(reset())
 
     initObsForParams = observe(reset())
     obsShape = [initObsForParams[obsID].shape[0] for obsID in range(len(initObsForParams))]
-
+    print('24e',obsShape)
     worldDim = 2
     actionDim = worldDim * 2 + 1
 
     layerWidth = [128, 128]
 
     # ------------ model ------------------------
-    buildMADDPGModels = BuildMADDPGModels(actionDim, numAgents, obsShape)
-    modelsList = [buildMADDPGModels(layerWidth, agentID) for agentID in range(numAgents)]
+    buildMADDPGModels = BuildMADDPGModels(actionDim, numAgent, obsShape)
+    modelsList = [buildMADDPGModels(layerWidth, agentID) for agentID in range(numAgent)]
 
     dataFolder = os.path.join(dirName, '..','..', 'data')
     mainModelFolder = os.path.join(dataFolder,'model')
-    modelFolder = os.path.join(mainModelFolder, 'MADDPGMujocoEnvWithRopeAddDistractor','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
+    modelFolder = os.path.join(mainModelFolder, modelSaveName,'damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
 
     fileName = "maddpg{}episodes{}step_agent".format(maxEpisode, maxTimeStep)
 
-    modelPaths = [os.path.join(modelFolder,  fileName + str(i) +str(evaluateEpisode)+'eps') for i in range(numAgents)]
+    modelPaths = [os.path.join(modelFolder,  fileName + str(i) +str(evaluateEpisode)+'eps') for i in range(numAgent)]
 
     [restoreVariables(model, path) for model, path in zip(modelsList, modelPaths)]
 
@@ -197,7 +202,7 @@ def generateSingleCondition(condition):
     if saveTraj:
         # trajFileName = "maddpg{}wolves{}sheep{}blocks{}eps{}step{}Traj".format(numWolves, numSheeps, numMasters, maxEpisode, maxTimeStep)
 
-        trajectoriesSaveDirectory= os.path.join(dataFolder,'trajectory','MADDPGMujocoEnvWithRopeAddDistractor')
+        trajectoriesSaveDirectory= os.path.join(dataFolder,'trajectory',modelSaveName)
 
         if not os.path.exists(trajectoriesSaveDirectory):
             os.makedirs(trajectoriesSaveDirectory)
@@ -212,30 +217,30 @@ def generateSingleCondition(condition):
     # visualize
     if visualizeTraj:
 
-        pictureFolder = os.path.join(dataFolder, 'demo', 'MADDPGMujocoEnvWithRopeAddDistractor','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
+        pictureFolder = os.path.join(dataFolder, 'demo', modelSaveName,'damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
 
         if not os.path.exists(pictureFolder):
             os.makedirs(pictureFolder)
-        entitiesColorList = [wolfColor] * numWolves + [sheepColor] * numSheeps + [masterColor] * numMasters
-        render = Render(entitiesSizeList, entitiesColorList, numAgents,pictureFolder,saveImage, getPosFromAgentState)
+        entitiesColorList = [wolfColor] * numWolves + [sheepColor] * numSheeps + [masterColor] * numMasters + [masterColor] * numDistractor
+        render = Render(entitiesSizeList, entitiesColorList, numAgent,pictureFolder,saveImage, getPosFromAgentState)
         trajToRender = np.concatenate(trajList)
         render(trajToRender)
 
 
 def main():
     manipulatedVariables = OrderedDict()
-    manipulatedVariables['damping'] = [0.0]#[0.0, 1.0]
-    manipulatedVariables['frictionloss'] =[0.4]# [0.0, 0.2, 0.4]
-    manipulatedVariables['masterForce']=[1.0]#[0.0, 2.0]
+    manipulatedVariables['damping'] = [0.0,1.0]#[0.0, 1.0]
+    manipulatedVariables['frictionloss'] =[0.0,0.2]# [0.0, 0.2, 0.4]
+    manipulatedVariables['masterForce']=[0.0,1.0]#[0.0, 2.0]
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]
     for condition in conditions:
         print(condition)
-        generateSingleCondition(condition)
-        # try:
-        #     generateSingleCondition(condition)
-        # except:
-        #     continue
+        # generateSingleCondition(condition)
+        try:
+            generateSingleCondition(condition)
+        except:
+            continue
 
 if __name__ == '__main__':
     main()

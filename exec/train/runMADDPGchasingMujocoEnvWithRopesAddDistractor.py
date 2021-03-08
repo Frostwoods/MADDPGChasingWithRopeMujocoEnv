@@ -24,7 +24,7 @@ from src.functionTools.editEnvXml import transferNumberListToStr,MakePropertyLis
 
 
 # fixed training parameters
-maxEpisode = 60000#150000
+maxEpisode = 120000#150000
 learningRateActor = 0.01#
 learningRateCritic = 0.01#
 gamma = 0.95 #
@@ -36,7 +36,7 @@ minibatchSize = 1024#
 # arguments: numWolves numSheeps numMasters saveAllmodels = True or False
 
 def main():
-    debug = 1
+    debug = 0
     if debug:
 
         damping=0.0
@@ -72,7 +72,7 @@ def main():
 
     dataFolder = os.path.join(dirName, '..','..', 'data')
     mainModelFolder = os.path.join(dataFolder,'model')
-    modelFolder = os.path.join(mainModelFolder, 'MADDPGMujocoEnvWithRopeAddDistractor','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
+    modelFolder = os.path.join(mainModelFolder, 'expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
 
     if not os.path.exists(modelFolder):
         os.makedirs(modelFolder)
@@ -84,10 +84,10 @@ def main():
     masterID = [2]
     distractorID = [3]
 
-    wolfSize = 0.075
+    wolfSize =0.05
     sheepSize = 0.05
-    masterSize = 0.075
-    distractorSize = 0.075
+    masterSize = 0.05
+    distractorSize =0.05
     entitiesSizeList = [wolfSize] * numWolves + [sheepSize] * numSheeps + [masterSize] * numMasters + [distractorSize] * numDistractor
 
     killZone = 0.01
@@ -95,16 +95,15 @@ def main():
     punishForOutOfBound = PunishForOutOfBound()
     rewardSheep = RewardSheep(wolvesID, sheepsID, entitiesSizeList, getPosFromAgentState, isCollision, punishForOutOfBound)
     rewardWolf = RewardWolf(wolvesID, sheepsID, entitiesSizeList, isCollision)
-    rewardDistractor = RewardSheep(wolvesID+sheepsID+masterID, distractorID, entitiesSizeList, getPosFromAgentState, isCollision,
-                              punishForOutOfBound)
+    rewardDistractor = RewardSheep(wolvesID+sheepsID+masterID, distractorID, entitiesSizeList, getPosFromAgentState, isCollision,punishForOutOfBound)
     rewardMaster= lambda state, action, nextState: [-reward  for reward in rewardWolf(state, action, nextState)]
 
 
     rewardFunc = lambda state, action, nextState: \
         list(rewardWolf(state, action, nextState)) + list(rewardSheep(state, action, nextState))\
-        + list(rewardMaster(state, action, nextState) + list(rewardDistractor(state, action, nextState)))
+        + list(rewardMaster(state, action, nextState)) + list(rewardDistractor(state, action, nextState))
 
-    physicsDynamicsPath=os.path.join(dirName,'..','..','env','xml','leasedAddDistractor.xml')
+    physicsDynamicsPath=os.path.join(dirName,'..','..','env','xml','leasedAddDistractorForExp.xml')
     with open(physicsDynamicsPath) as f:
         xml_string = f.read()
 
@@ -148,11 +147,12 @@ def main():
     reshapeActionList = [ReshapeAction(5),ReshapeAction(5),ReshapeAction(masterForce),ReshapeAction(5)]
     transit=TransitionFunctionWithoutXPos(physicsSimulation, numSimulationFrames, visualize,isTerminal, reshapeActionList)
 
-    observeOneAgent = lambda agentID: Observe(agentID, wolvesID, sheepsID, masterID, getPosFromAgentState,getVelFromAgentState)
+    observeOneAgent = lambda agentID: Observe(agentID, wolvesID, sheepsID + masterID +distractorID, [], getPosFromAgentState,getVelFromAgentState)
     observe = lambda state: [observeOneAgent(agentID)(state) for agentID in range(numAgent)]
     initObsForParams = observe(reset())
+    print(reset())
     obsShape = [initObsForParams[obsID].shape[0] for obsID in range(len(initObsForParams))]
-
+    print('24e',obsShape)
     worldDim = 2
     actionDim = worldDim * 2 + 1
 
@@ -188,7 +188,7 @@ def main():
 
     getAgentModel = lambda agentId: lambda: trainMADDPGModels.getTrainedModels()[agentId]
     getModelList = [getAgentModel(i) for i in range(numAgent)]
-    modelSaveRate = 10
+    modelSaveRate = 1000
     fileName = "maddpg{}episodes{}step_agent".format(maxEpisode, maxTimeStep)
 
     modelPath = os.path.join(modelFolder, fileName)
