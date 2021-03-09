@@ -49,3 +49,39 @@ class SampleTrajectory:
         # print('epsReward: ', epsReward)
         return trajectory
 
+class SampleExpTrajectory:
+    def __init__(self, maxRunningSteps, transit, isTerminal, rewardFunc, reset):
+        self.maxRunningSteps = maxRunningSteps
+        self.transit = transit
+        self.isTerminal = isTerminal
+        self.rewardFunc = rewardFunc
+        self.reset = reset
+
+    def __call__(self, policy):
+        # epsReward = np.array([0, 0, 0])
+        state = self.reset()
+        while self.isTerminal(state):
+            print('reset')
+            state = self.reset()
+
+        trajectory = []
+        expTrajectory = []
+        for runningStep in range(self.maxRunningSteps):
+            if self.isTerminal(state):
+                # print('terminal------------')
+                break
+            action = policy(state)
+            # print(action)
+            nextState = self.transit(state, action)
+
+            reward = self.rewardFunc(state, action, nextState)
+            # print('state: ', state, 'action: ', action, 'nextState: ', nextState, 'reward: ', reward)
+            # epsReward += reward
+            expTrajectory.append([[agentState[0],agentState[1]] for agentState in state])
+            trajectory.append((state, action, reward, nextState))
+
+            state = nextState
+        expTrajectory.append([[agentState[0], agentState[1]] for agentState in state])
+        # print('epsReward: ', epsReward)
+        return trajectory, expTrajectory
+
