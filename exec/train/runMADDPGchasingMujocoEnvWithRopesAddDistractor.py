@@ -24,7 +24,7 @@ from src.functionTools.editEnvXml import transferNumberListToStr,MakePropertyLis
 
 
 # fixed training parameters
-maxEpisode = 120000#150000
+maxEpisode = 200000#150000
 learningRateActor = 0.01#
 learningRateCritic = 0.01#
 gamma = 0.95 #
@@ -39,8 +39,8 @@ def main():
     debug = 0
     if debug:
 
-        damping=0.0
-        frictionloss=0.4
+        damping=0.5
+        frictionloss=0.1
         masterForce=1.0
 
 
@@ -72,7 +72,7 @@ def main():
 
     dataFolder = os.path.join(dirName, '..','..', 'data')
     mainModelFolder = os.path.join(dataFolder,'model')
-    modelFolder = os.path.join(mainModelFolder, 'expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
+    modelFolder = os.path.join(mainModelFolder, '2expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
 
     if not os.path.exists(modelFolder):
         os.makedirs(modelFolder)

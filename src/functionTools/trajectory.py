@@ -78,10 +78,12 @@ class SampleExpTrajectory:
             # print('state: ', state, 'action: ', action, 'nextState: ', nextState, 'reward: ', reward)
             # epsReward += reward
             expTrajectory.append([[agentState[0],agentState[1]] for agentState in state])
+
             trajectory.append((state, action, reward, nextState))
 
             state = nextState
         expTrajectory.append([[agentState[0], agentState[1]] for agentState in state])
+        print([[agentState[0], agentState[1]] for agentState in state])
         # print('epsReward: ', epsReward)
         return trajectory, expTrajectory
 

@@ -30,7 +30,7 @@ def makeVideo(condition):
 
     dataFolder = os.path.join(dirName, '..','..', 'data')
     mainDemoFolder = os.path.join(dataFolder,'demo')
-    videoFolder=os.path.join(mainDemoFolder, 'expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed')
+    videoFolder=os.path.join(mainDemoFolder, '2expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed')
     if not os.path.exists(videoFolder):
         os.makedirs(videoFolder)
 
@@ -56,10 +56,9 @@ def main():
 
     manipulatedVariables = OrderedDict()
 
-
-    manipulatedVariables['damping'] = [0.0,1.0]#[0.0, 1.0]
-    manipulatedVariables['frictionloss'] =[0.0,0.2]# [0.0, 0.2, 0.4]
-    manipulatedVariables['masterForce']=[0.0,1.0]
+    manipulatedVariables['damping'] = [0.5,1.0]#[0.0, 1.0]
+    manipulatedVariables['frictionloss'] =[0.1,0.2]# [0.0, 0.2, 0.4]
+    manipulatedVariables['masterForce']=[0.5,1.0]#[0.0, 2.0]
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]
 
