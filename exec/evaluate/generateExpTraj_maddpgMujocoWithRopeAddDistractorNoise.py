@@ -64,8 +64,8 @@ def generateSingleCondition(condition):
         frictionloss = float(condition['frictionloss'])
         masterForce = float(condition['masterForce'])
 
-        maxEpisode = 200000
-        evaluateEpisode = 200000
+        maxEpisode = 120000
+        evaluateEpisode = 120000
         numWolves = 1
         numSheeps = 1
         numMasters = 1
@@ -80,7 +80,7 @@ def generateSingleCondition(condition):
 
     evalNum = 3
     maxRunningStepsToSample = 100
-    modelSaveName = '2expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed'
+    modelSaveName = 'expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed'
     print("maddpg: , saveTraj: {}, visualize: {},damping; {},frictionloss: {}".format( str(saveTraj), str(visualizeMujoco),damping,frictionloss))
 
 
@@ -110,7 +110,7 @@ def generateSingleCondition(condition):
         list(rewardWolf(state, action, nextState)) + list(rewardSheep(state, action, nextState))\
         + list(rewardMaster(state, action, nextState) )+ list(rewardDistractor(state, action, nextState))
 
-    physicsDynamicsPath=os.path.join(dirName,'..','..','env','xml','leasedAddDistractorForExp.xml')
+    physicsDynamicsPath=os.path.join(dirName,'..','..','env','xml','leasedAddDistractor.xml')
     with open(physicsDynamicsPath) as f:
         xml_string = f.read()
 
@@ -153,7 +153,10 @@ def generateSingleCondition(condition):
     reset = ResetUniformWithoutXPosForLeashed(physicsSimulation, qPosInit, qVelInit, numAgent, tiedAgentId,ropePartIndex, maxRopePartLength, qPosInitNoise, qVelInitNoise)
     numSimulationFrames=10
     isTerminal= lambda state: False
+
+    
     distractorReshapeAction=ReshapeAction(5)
+    
     noiseMean = (0, 0)
     noiseCov = [[1, 0], [0, 1]]
     # x = np.random.multivariate_normal(noiseMean, noiseCov, (1, 1), 'raise')[0]
@@ -254,9 +257,10 @@ def generateSingleCondition(condition):
 
 def main():
     manipulatedVariables = OrderedDict()
-    manipulatedVariables['damping'] = [0.5,1.0]#[0.0, 1.0]
-    manipulatedVariables['frictionloss'] =[0.1,0.2]# [0.0, 0.2, 0.4]
-    manipulatedVariables['masterForce']=[0.5,1.0]#[0.0, 2.0]
+    manipulatedVariables['damping'] = [0.0,1.0]#[0.0, 1.0]
+    manipulatedVariables['frictionloss'] =[0.0,0.2]# [0.0, 0.2, 0.4]
+    manipulatedVariables['masterForce']=[0.0,1.0]#[0.0, 2.0]
+    manipulatedVariables['distractorNoise']=[0,1,2,3,4]
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]
     for condition in conditions:
