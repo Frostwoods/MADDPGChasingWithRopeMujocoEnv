@@ -22,7 +22,8 @@ def argmax(x, axis=None):
     return tf.argmax(x, axis=axis)
 def softmax(x, axis=None):
     return tf.nn.softmax(x, axis=axis)
-
+def softmaxBeta(x, axis=None, Beta=1):
+    return tf.nn.softmax(tf.multiply(Beta,x), axis=axis)
 # ================================================================
 # Misc
 # ================================================================

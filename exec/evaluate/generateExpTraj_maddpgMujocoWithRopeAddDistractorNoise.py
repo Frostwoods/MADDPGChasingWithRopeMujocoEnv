@@ -153,7 +153,10 @@ def generateSingleCondition(condition):
     reset = ResetUniformWithoutXPosForLeashed(physicsSimulation, qPosInit, qVelInit, numAgent, tiedAgentId,ropePartIndex, maxRopePartLength, qPosInitNoise, qVelInitNoise)
     numSimulationFrames=10
     isTerminal= lambda state: False
+
+    
     distractorReshapeAction=ReshapeAction(5)
+    
     noiseMean = (0, 0)
     noiseCov = [[1, 0], [0, 1]]
     # x = np.random.multivariate_normal(noiseMean, noiseCov, (1, 1), 'raise')[0]
@@ -257,6 +260,7 @@ def main():
     manipulatedVariables['damping'] = [0.0,1.0]#[0.0, 1.0]
     manipulatedVariables['frictionloss'] =[0.0,0.2]# [0.0, 0.2, 0.4]
     manipulatedVariables['masterForce']=[0.0,1.0]#[0.0, 2.0]
+    manipulatedVariables['distractorNoise']=[0,1,2,3,4]
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]
     for condition in conditions:
