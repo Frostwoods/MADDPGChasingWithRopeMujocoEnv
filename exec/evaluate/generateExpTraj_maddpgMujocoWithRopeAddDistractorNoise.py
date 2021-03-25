@@ -63,7 +63,7 @@ def generateSingleCondition(condition):
         damping = float(condition['damping'])
         frictionloss = float(condition['frictionloss'])
         masterForce = float(condition['masterForce'])
-
+        distractorNoise = float(condition['distractorNoise'])
         maxEpisode = 120000
         evaluateEpisode = 120000
         numWolves = 1
@@ -154,26 +154,28 @@ def generateSingleCondition(condition):
     numSimulationFrames=10
     isTerminal= lambda state: False
 
-    
+
     distractorReshapeAction=ReshapeAction(5)
-    
+
     noiseMean = (0, 0)
-    noiseCov = [[1, 0], [0, 1]]
+    noiseCov = [[distractorNoise, 0], [0, distractorNoise]]
     # x = np.random.multivariate_normal(noiseMean, noiseCov, (1, 1), 'raise')[0]
     class LimitSpeed():
         def __init__(self,entityMaxSpeed=None):
             self.entityMaxSpeed = entityMaxSpeed
 
-        def __call__(self,entityNextVel)               
+        def __call__(self,entityNextVel):
             if self.entityMaxSpeed is not None:
                 speed = np.sqrt(np.square(entityNextVel[0]) + np.square(entityNextVel[1])) #
-            if speed > entityMaxSpeed:
-                entityNextVel = entityNextVel / speed * entityMaxSpeed
-    limitSpeed = LimitSpeed(5) 
-    
-           
-    noiseDistractorAction= lambda state：LimitSpeed(distractorReshapeAction(state)+np.random.multivariate_normal(noiseMean, noiseCov, (1, 1), 'raise')[0])
+            if speed > self.entityMaxSpeed:
+                entityNextVel = entityNextVel / speed * self.entityMaxSpeed
 
+            return entityNextVel
+
+    limitSpeed = LimitSpeed(5)
+
+
+    noiseDistractorAction= lambda state: limitSpeed(distractorReshapeAction(state) + np.random.multivariate_normal(noiseMean, noiseCov,(1))[0])
     reshapeActionList = [ReshapeAction(5),ReshapeAction(5),ReshapeAction(masterForce),noiseDistractorAction]
     transit=TransitionFunctionWithoutXPos(physicsSimulation, numSimulationFrames, visualizeMujoco,isTerminal, reshapeActionList)
 
@@ -224,17 +226,17 @@ def generateSingleCondition(condition):
     if saveTraj:
         # trajFileName = "maddpg{}wolves{}sheep{}blocks{}eps{}step{}Traj".format(numWolves, numSheeps, numMasters, maxEpisode, maxTimeStep)
 
-        trajectoriesSaveDirectory= os.path.join(dataFolder,'trajectory',modelSaveName)
+        trajectoriesSaveDirectory= os.path.join(dataFolder,'trajectory',modelSaveName,'noise')
         if not os.path.exists(trajectoriesSaveDirectory):
             os.makedirs(trajectoriesSaveDirectory)
 
         trajectorySaveExtension = '.pickle'
-        fixedParameters = {'damping': damping,'frictionloss':frictionloss,'masterForce':masterForce,'evalNum':evalNum,'evaluateEpisode':evaluateEpisode}
+        fixedParameters = {'damping': damping,'frictionloss':frictionloss,'masterForce':masterForce,'evalNum':evalNum,'evaluateEpisode':evaluateEpisode,'distractorNoise':distractorNoise}
         generateTrajectorySavePath = GetSavePath(trajectoriesSaveDirectory, trajectorySaveExtension, fixedParameters)
         trajectorySavePath = generateTrajectorySavePath({})
         saveToPickle(trajList, trajectorySavePath)
 
-        expTrajectoriesSaveDirectory = os.path.join(dataFolder, 'expTrajectory', modelSaveName)
+        expTrajectoriesSaveDirectory = os.path.join(dataFolder, 'expTrajectory', modelSaveName,'noise')
         if not os.path.exists(expTrajectoriesSaveDirectory):
             os.makedirs(expTrajectoriesSaveDirectory)
 
@@ -245,7 +247,7 @@ def generateSingleCondition(condition):
     # visualize
     if visualizeTraj:
 
-        pictureFolder = os.path.join(dataFolder, 'demo', modelSaveName,'damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
+        pictureFolder = os.path.join(dataFolder, 'demo', modelSaveName,'noise','NoiseDistractor','damping={}_frictionloss={}_masterForce={}_distractorNoise={}'.format(damping,frictionloss,masterForce,distractorNoise))
 
         if not os.path.exists(pictureFolder):
             os.makedirs(pictureFolder)
@@ -257,19 +259,19 @@ def generateSingleCondition(condition):
 
 def main():
     manipulatedVariables = OrderedDict()
-    manipulatedVariables['damping'] = [0.0,1.0]#[0.0, 1.0]
-    manipulatedVariables['frictionloss'] =[0.0,0.2]# [0.0, 0.2, 0.4]
-    manipulatedVariables['masterForce']=[0.0,1.0]#[0.0, 2.0]
+    manipulatedVariables['damping'] = [0.0]#[0.0, 1.0]
+    manipulatedVariables['frictionloss'] =[0.0]# [0.0, 0.2, 0.4]
+    manipulatedVariables['masterForce']=[0.0]#[0.0, 2.0]
     manipulatedVariables['distractorNoise']=[0,1,2,3,4]
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]
     for condition in conditions:
         print(condition)
-        # generateSingleCondition(condition)
-        try:
-            generateSingleCondition(condition)
-        except:
-            continue
+        generateSingleCondition(condition)
+        # try:
+            # generateSingleCondition(condition)
+        # except:
+            # continue
 
 if __name__ == '__main__':
     main()

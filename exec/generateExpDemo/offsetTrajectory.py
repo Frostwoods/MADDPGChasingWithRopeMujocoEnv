@@ -67,8 +67,8 @@ def generateSingleCondition(condition):
         frictionloss = float(condition['frictionloss'])
         masterForce = float(condition['masterForce'])
         offsetFrame = int(condition['offsetFrame'])
-        maxEpisode = 120000
-        evaluateEpisode = 120000
+        maxEpisode = 200000
+        evaluateEpisode = 200000
         numWolves = 1
         numSheeps = 1
         numMasters = 1
@@ -83,7 +83,7 @@ def generateSingleCondition(condition):
 
     evalNum = 3
     maxRunningStepsToSample = 100
-    modelSaveName = 'expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed'
+    modelSaveName = '2expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed'
     numAgent = numWolves + numSheeps + numMasters +  numDistractor
     wolvesID = [0]
     sheepsID = [1]
@@ -97,7 +97,7 @@ def generateSingleCondition(condition):
     entitiesMovableList = [True] * numAgent + [False] * numMasters
 
     dataFolder = os.path.join(dirName, '..','..', 'data')
-    expTrajectoriesSaveDirectory = os.path.join(dataFolder, 'expTrajectory', modelSaveName)
+    expTrajectoriesSaveDirectory = os.path.join(dataFolder, 'expTrajectory', modelSaveName,'normal')
     # if not os.path.exists(expTrajectoriesSaveDirectory):
     #     os.makedirs(expTrajectoriesSaveDirectory)
     trajectorySaveExtension = '.pickle'
@@ -106,43 +106,50 @@ def generateSingleCondition(condition):
     expTrajectoryLoadPath = generateExpTrajectoryLoadPath({})
     originalTrajList=loadFromPickle(expTrajectoryLoadPath)
     newTrajList=[]
+    newTrajListForDraw = []
     for i,traj in enumerate(originalTrajList):
         # offsetFrame=5
-        newTraj = [[traj[i][0],traj[i+offsetFrame][1],traj[i+offsetFrame][2],traj[i+offsetFrame][3]]    for index in range(len(traj)-offsetFrame)]
-        # newTraj = [[replaceState[0],originalState[1],originalState[2],originalState[3]] for originalState,replaceState in zip (traj,originalTrajList[j])]
+        newTraj = [[traj[index][0],traj[index+offsetFrame][1],traj[index+offsetFrame][2],traj[index+offsetFrame][3]]    for index in range(len(traj)-offsetFrame)]
+        newTrajForDraw = [[[traj[index][0],traj[index+offsetFrame][1],traj[index+offsetFrame][2],traj[index+offsetFrame][3]]]    for index in range(len(traj)-offsetFrame)]
+        # newTraj = [[traj[index+offsetFrame][0],traj[index][1],traj[index][2],traj[index][3]]    for index in range(len(traj)-offsetFrame)]
+        # newTrajForDraw = [[[traj[index+offsetFrame][0],traj[index][1],traj[index][2],traj[index][3]]]    for index in range(len(traj)-offsetFrame)]
+
+        newTrajListForDraw.append(newTrajForDraw)
         newTrajList.append(newTraj)
 
-    expTrajectoriesSaveDirectory = os.path.join(dataFolder, 'expTrajectoryOffset', modelSaveName)
+    expTrajectoriesSaveDirectory = os.path.join(dataFolder, 'expTrajectory', modelSaveName,'OffsetWolfBackward')
+    if not os.path.exists(expTrajectoriesSaveDirectory):
+        os.makedirs(expTrajectoriesSaveDirectory)
     generateExpTrajectorySavePath = GetSavePath(expTrajectoriesSaveDirectory, trajectorySaveExtension, fixedParameters)
     expTrajectorySavePath = generateExpTrajectorySavePath({})
-    saveToPickle(newTrajList, expTrajectorySavePath)    
+    saveToPickle(newTrajList, expTrajectorySavePath)
 
     if visualizeTraj:
 
-        pictureFolder = os.path.join(dataFolder, 'demo', modelSaveName,'damping={}_frictionloss={}_masterForce={}_offsetFrame={}'.format(damping,frictionloss,masterForce,offsetFrame))
+        pictureFolder = os.path.join(dataFolder, 'demo', modelSaveName,'OffsetWolfBackward','damping={}_frictionloss={}_masterForce={}_offsetFrame={}'.format(damping,frictionloss,masterForce,offsetFrame))
 
         if not os.path.exists(pictureFolder):
             os.makedirs(pictureFolder)
         entitiesColorList = [wolfColor] * numWolves + [sheepColor] * numSheeps + [masterColor] * numMasters + [masterColor] * numDistractor
         render = Render(entitiesSizeList, entitiesColorList, numAgent,pictureFolder,saveImage, getPosFromAgentState)
-        trajToRender = np.concatenate(newTrajList)
+        trajToRender = np.concatenate(newTrajListForDraw)
         render(trajToRender)
 
 def main():
     manipulatedVariables = OrderedDict()
-    manipulatedVariables['damping'] = [0.0,1.0]#[0.0, 1.0]
-    manipulatedVariables['frictionloss'] =[0.0,0.2]# [0.0, 0.2, 0.4]
-    manipulatedVariables['masterForce']=[0.0,1.0]#[0.0, 2.0]
-    manipulatedVariables['offsetFrame']=[5]
+    manipulatedVariables['damping'] = [0.5]#[0.0, 1.0]
+    manipulatedVariables['frictionloss'] =[0.1]# [0.0, 0.2, 0.4]
+    manipulatedVariables['masterForce']=[0.5]#[0.0, 2.0]
+    manipulatedVariables['offsetFrame']=[4,8,12]
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]
     for condition in conditions:
         print(condition)
-        # generateSingleCondition(condition)
-        try:
-            generateSingleCondition(condition)
-        except:
-            continue
+        generateSingleCondition(condition)
+        # try:
+            # generateSingleCondition(condition)
+        # except:
+            # continue
 
 if __name__ == '__main__':
     main()

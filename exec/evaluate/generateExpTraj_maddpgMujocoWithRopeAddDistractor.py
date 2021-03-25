@@ -64,8 +64,8 @@ def generateSingleCondition(condition):
         frictionloss = float(condition['frictionloss'])
         masterForce = float(condition['masterForce'])
 
-        maxEpisode = 200000
-        evaluateEpisode = 200000
+        maxEpisode = 120000
+        evaluateEpisode = 120000
         numWolves = 1
         numSheeps = 1
         numMasters = 1
@@ -80,7 +80,7 @@ def generateSingleCondition(condition):
 
     evalNum = 3
     maxRunningStepsToSample = 100
-    modelSaveName = '2expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed'
+    modelSaveName = 'expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed'
     print("maddpg: , saveTraj: {}, visualize: {},damping; {},frictionloss: {}".format( str(saveTraj), str(visualizeMujoco),damping,frictionloss))
 
 
@@ -161,17 +161,17 @@ def generateSingleCondition(condition):
         def __init__(self,entityMaxSpeed=None):
             self.entityMaxSpeed = entityMaxSpeed
 
-        def __call__(self,entityNextVel)               
+        def __call__(self,entityNextVel):
             if self.entityMaxSpeed is not None:
                 speed = np.sqrt(np.square(entityNextVel[0]) + np.square(entityNextVel[1])) #
             if speed > entityMaxSpeed:
                 entityNextVel = entityNextVel / speed * entityMaxSpeed
-    limitSpeed = LimitSpeed(5) 
-    
-           
-    noiseDistractorAction= lambda state：LimitSpeed(distractorReshapeAction(state)+np.random.multivariate_normal(noiseMean, noiseCov, (1, 1), 'raise')[0])
+    limitSpeed = LimitSpeed(5)
 
-    reshapeActionList = [ReshapeAction(5),ReshapeAction(5),ReshapeAction(masterForce),noiseDistractorAction]
+
+    noiseDistractorAction= lambda state:LimitSpeed(distractorReshapeAction(state)+np.random.multivariate_normal(noiseMean, noiseCov, (1, 1), 'raise')[0])
+
+    reshapeActionList = [ReshapeAction(5),ReshapeAction(5),ReshapeAction(masterForce),ReshapeAction(5)]
     transit=TransitionFunctionWithoutXPos(physicsSimulation, numSimulationFrames, visualizeMujoco,isTerminal, reshapeActionList)
 
 
@@ -221,7 +221,7 @@ def generateSingleCondition(condition):
     if saveTraj:
         # trajFileName = "maddpg{}wolves{}sheep{}blocks{}eps{}step{}Traj".format(numWolves, numSheeps, numMasters, maxEpisode, maxTimeStep)
 
-        trajectoriesSaveDirectory= os.path.join(dataFolder,'trajectory',modelSaveName)
+        trajectoriesSaveDirectory= os.path.join(dataFolder,'trajectory',modelSaveName,'normal')
         if not os.path.exists(trajectoriesSaveDirectory):
             os.makedirs(trajectoriesSaveDirectory)
 
@@ -231,7 +231,7 @@ def generateSingleCondition(condition):
         trajectorySavePath = generateTrajectorySavePath({})
         saveToPickle(trajList, trajectorySavePath)
 
-        expTrajectoriesSaveDirectory = os.path.join(dataFolder, 'expTrajectory', modelSaveName)
+        expTrajectoriesSaveDirectory = os.path.join(dataFolder, 'expTrajectory', modelSaveName,'normal')
         if not os.path.exists(expTrajectoriesSaveDirectory):
             os.makedirs(expTrajectoriesSaveDirectory)
 
@@ -242,7 +242,7 @@ def generateSingleCondition(condition):
     # visualize
     if visualizeTraj:
 
-        pictureFolder = os.path.join(dataFolder, 'demo', modelSaveName,'damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
+        pictureFolder = os.path.join(dataFolder, 'demo', modelSaveName,'normal','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
 
         if not os.path.exists(pictureFolder):
             os.makedirs(pictureFolder)
@@ -254,9 +254,9 @@ def generateSingleCondition(condition):
 
 def main():
     manipulatedVariables = OrderedDict()
-    manipulatedVariables['damping'] = [0.5,1.0]#[0.0, 1.0]
-    manipulatedVariables['frictionloss'] =[0.1,0.2]# [0.0, 0.2, 0.4]
-    manipulatedVariables['masterForce']=[0.5,1.0]#[0.0, 2.0]
+    manipulatedVariables['damping'] = [0.0]#[0.0, 1.0]
+    manipulatedVariables['frictionloss'] =[0.0]# [0.0, 0.2, 0.4]
+    manipulatedVariables['masterForce']=[0.0]#[0.0, 2.0]
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]
     for condition in conditions:

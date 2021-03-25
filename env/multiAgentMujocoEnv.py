@@ -278,6 +278,7 @@ class ReshapeAction:
         actionX = action[1] - action[2]
         actionY = action[3] - action[4]
         actionReshaped = np.array([actionX, actionY]) * self.sensitivity
+        print(actionReshaped,'2d')
         return actionReshaped
 
 class ResetUniformWithoutXPos:

@@ -67,8 +67,8 @@ def generateSingleCondition(condition):
         frictionloss = float(condition['frictionloss'])
         masterForce = float(condition['masterForce'])
 
-        maxEpisode = 120000
-        evaluateEpisode = 120000
+        maxEpisode = 200000
+        evaluateEpisode = 200000
         numWolves = 1
         numSheeps = 1
         numMasters = 1
@@ -83,7 +83,7 @@ def generateSingleCondition(condition):
 
     evalNum = 3
     maxRunningStepsToSample = 100
-    modelSaveName = 'expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed'
+    modelSaveName = '2expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed'
     numAgent = numWolves + numSheeps + numMasters +  numDistractor
     wolvesID = [0]
     sheepsID = [1]
@@ -97,54 +97,63 @@ def generateSingleCondition(condition):
     entitiesMovableList = [True] * numAgent + [False] * numMasters
 
     dataFolder = os.path.join(dirName, '..','..', 'data')
-    expTrajectoriesSaveDirectory = os.path.join(dataFolder, 'expTrajectory', modelSaveName)
+    expTrajectoriesSaveDirectory = os.path.join(dataFolder, 'expTrajectory', modelSaveName,'normal')
     # if not os.path.exists(expTrajectoriesSaveDirectory):
     #     os.makedirs(expTrajectoriesSaveDirectory)
     trajectorySaveExtension = '.pickle'
     fixedParameters = {'damping': damping,'frictionloss':frictionloss,'masterForce':masterForce,'evalNum':evalNum,'evaluateEpisode':evaluateEpisode}
     generateExpTrajectorySavePath = GetSavePath(expTrajectoriesSaveDirectory, trajectorySaveExtension, fixedParameters)
     expTrajectorySavePath = generateExpTrajectorySavePath({})
+    print(expTrajectorySavePath)
     originalTrajList=loadFromPickle(expTrajectorySavePath)
     newTrajList=[]
-    for i,traj in enumerate(originalTrajList):
-
-        j=random.randint(0,evalNum)
-        while j == i:
-            j=random.randint(0,evalNum)
-        newTraj = [[replaceState[0],originalState[1],originalState[2],originalState[3]] for originalState,replaceState in zip (traj,originalTrajList[j])]
+    newTrajListForDraw=[]
+    for trajIndex,traj in enumerate(originalTrajList):
+        print(trajIndex)
+        crossIndex=random.randint(0,evalNum-1)
+        while crossIndex == trajIndex:
+            crossIndex=random.randint(0,evalNum-1)
+        print(traj[0])
+        newTraj = [[replaceState[0],originalState[1],originalState[2],originalState[3]] for originalState,replaceState in zip (traj,originalTrajList[crossIndex])]
+        newTrajForDraw = [[[replaceState[0],originalState[1],originalState[2],originalState[3]]] for originalState,replaceState in zip (traj,originalTrajList[crossIndex])]
+        newTrajListForDraw.append(newTrajForDraw)
         newTrajList.append(newTraj)
 
-    expTrajectoriesSaveDirectory = os.path.join(dataFolder, 'expTrajectoryCross', modelSaveName)
+    expTrajectoriesSaveDirectory = os.path.join(dataFolder, 'expTrajectory', modelSaveName,'Cross')
+    if not os.path.exists(expTrajectoriesSaveDirectory):
+        os.makedirs(expTrajectoriesSaveDirectory)
     generateExpTrajectorySavePath = GetSavePath(expTrajectoriesSaveDirectory, trajectorySaveExtension, fixedParameters)
     expTrajectorySavePath = generateExpTrajectorySavePath({})
-    saveToPickle(newTrajList, expTrajectorySavePath)    
+    saveToPickle(newTrajList, expTrajectorySavePath)
 
     if visualizeTraj:
-        trajSaveName = 'expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed_Cross'
-        pictureFolder = os.path.join(dataFolder, 'demo', trajSaveName,'damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
+        trajSaveName = '2expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed'
+        pictureFolder = os.path.join(dataFolder, 'demo', trajSaveName,'Cross','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
+
+
 
         if not os.path.exists(pictureFolder):
             os.makedirs(pictureFolder)
         entitiesColorList = [wolfColor] * numWolves + [sheepColor] * numSheeps + [masterColor] * numMasters + [masterColor] * numDistractor
         render = Render(entitiesSizeList, entitiesColorList, numAgent,pictureFolder,saveImage, getPosFromAgentState)
-        trajToRender = np.concatenate(newTrajList)
+        trajToRender = np.concatenate(newTrajListForDraw)
         render(trajToRender)
 
 def main():
     manipulatedVariables = OrderedDict()
-    manipulatedVariables['damping'] = [0.0,1.0]#[0.0, 1.0]
-    manipulatedVariables['frictionloss'] =[0.0,0.2]# [0.0, 0.2, 0.4]
-    manipulatedVariables['masterForce']=[0.0,1.0]#[0.0, 2.0]
+    manipulatedVariables['damping'] = [0.5]#[0.0, 1.0]
+    manipulatedVariables['frictionloss'] =[0.1]# [0.0, 0.2, 0.4]
+    manipulatedVariables['masterForce']=[0.5]#[0.0, 2.0]
     # manipulatedVariables['distractorNoise']=[0,1,2,3,4]
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]
     for condition in conditions:
         print(condition)
-        # generateSingleCondition(condition)
-        try:
-            generateSingleCondition(condition)
-        except:
-            continue
+        generateSingleCondition(condition)
+        # try:
+            # generateSingleCondition(condition)
+        # except:
+        #     continue
 
 if __name__ == '__main__':
     main()
