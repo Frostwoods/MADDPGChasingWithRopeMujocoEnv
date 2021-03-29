@@ -291,7 +291,18 @@ def calculateChasingSubtlety(trajs):
     averageAngle = np.mean(wolfSheepAngleList)
 
     return averageAngle
+    
+class ComputeStatistics:
+    def __init__(self, getTrajectories, measurementFunction):
+        self.getTrajectories = getTrajectories
+        self.measurementFunction = measurementFunction
 
+    def __call__(self, oneConditionDf):
+        allTrajectories = self.getTrajectories(oneConditionDf)
+        allMeasurements = np.array([self.measurementFunction(trajectory) for trajectory in allTrajectories])
+        measurementMean = np.mean(allMeasurements, axis = 0)
+        measurementStd = np.std(allMeasurements, axis = 0)
+        return pd.Series({'mean': measurementMean, 'std': measurementStd})
 
 def main():
     manipulatedVariables = OrderedDict()
