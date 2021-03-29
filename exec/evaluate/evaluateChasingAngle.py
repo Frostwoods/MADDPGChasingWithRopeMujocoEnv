@@ -10,7 +10,7 @@ logging.getLogger('tensorflow').setLevel(logging.ERROR)
 
 import xmltodict
 import mujoco_py as mujoco
-
+import pandas as pd
 import itertools as it
 from collections import OrderedDict
 import numpy as np
@@ -19,7 +19,7 @@ from env.multiAgentMujocoEnv import RewardSheep, RewardWolf, Observe, IsCollisio
 
 from src.maddpg.trainer.myMADDPG import ActOneStep, BuildMADDPGModels, actByPolicyTrainNoisy
 
-from src.functionTools.loadSaveModel import saveToPickle, restoreVariables,GetSavePath，loadFromPickle
+from src.functionTools.loadSaveModel import saveToPickle, restoreVariables,GetSavePath,loadFromPickle
 from src.functionTools.trajectory import SampleExpTrajectory
 from src.functionTools.editEnvXml import transferNumberListToStr,MakePropertyList,changeJointProperty
 from src.visualize.visualizeMultiAgent import Render
@@ -277,8 +277,8 @@ class LoadTrajectories:
             mergedTrajectories.extend(oneFileTrajectories)
         return mergedTrajectories
 def calculateChasingSubtlety(trajs):
-    
-    
+
+
     def calculateIncludedAngle(vector1,vector2):
         v1=complex(vector1[0],vector1[1])
         v2=complex(vector2[0],vector2[1])
@@ -304,13 +304,13 @@ def main():
     evalNum=3
     evaluateEpisode=200000
 
-    for condition in conditions:
-        print(condition)
-        # generateSingleCondition(condition)
-        try:
-            generateSingleCondition(condition)
-        except:
-            continue
+    # for condition in conditions:
+    #     print(condition)
+    #     # generateSingleCondition(condition)
+    #     try:
+    #         generateSingleCondition(condition)
+    #     except:
+    #         continue
 
 
     levelNames = list(manipulatedVariables.keys())
@@ -321,24 +321,24 @@ def main():
 
     dataFolder = os.path.join(dirName, '..','..', 'data')
     modelSaveName = 'expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed'
-    trajectoryDirectory= os.path.join(dataFolder,'trajectory',modelSaveName,'normal')  
+    trajectoryDirectory= os.path.join(dataFolder,'trajectory',modelSaveName,'normal')
     trajectoryExtension = '.pickle'
 
     trajectoryFixedParameters = {'evalNum':evalNum,'evaluateEpisode':evaluateEpisode}
-    
+
     getTrajectorySavePath = GetSavePath(trajectoryDirectory, trajectoryExtension, trajectoryFixedParameters)
 
     fuzzySearchParameterNames = []
     loadTrajectories = LoadTrajectories(getTrajectorySavePath, loadFromPickle, fuzzySearchParameterNames)
     loadTrajectoriesFromDf = lambda df: loadTrajectories(readParametersFromDf(df))
     measurementFunction = lambda trajectory: calculateChasingSubtlety(trajectory)[0]
-    
+
     computeStatistics = ComputeStatistics(loadTrajectoriesFromDf, measurementFunction)
-    statisticsDf = toSplitFrame.groupby(levelNames).apply(computeStatistics)    
-    
+    statisticsDf = toSplitFrame.groupby(levelNames).apply(computeStatistics)
+
     print(statisticsDf)
-    
-    
+
+
     # fig = plt.figure()
     # numRows = len(manipulatedVariables['miniBatchSize'])
     # numColumns = len(manipulatedVariables['depth'])
