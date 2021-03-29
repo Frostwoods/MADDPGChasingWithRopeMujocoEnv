@@ -337,7 +337,7 @@ class SimpleImageViewer(object):
 
 
 class Render:
-    def __init__(self, entitiesSizeList, entitiesColorList, numAgents,demoFolder,saveImage, getPosFromState):
+    def __init__(self, entitiesSizeList, entitiesColorList, numAgents,demoFolder,saveImage, getPosFromState,darwLine=False):
         self.entitiesSizeList = entitiesSizeList
         self.entitiesColorList = entitiesColorList
         self.numEntities = len(self.entitiesSizeList)
@@ -346,6 +346,7 @@ class Render:
         self.saveImage = saveImage
         self.getPosFromState = getPosFromState
         self.demoFolder=demoFolder
+        self.darwLine=darwLine
     def __call__(self, trajectory):
         mode ='human' #'rgb_array'
         self.render_geoms = None # reset render when reset() is called -> =start of new traj
@@ -400,11 +401,11 @@ class Render:
                 agentState = state[entityID]
                 entityPos = self.getPosFromState(agentState)
                 self.render_geoms_xform[entityID].set_translation(*entityPos)
-
-            start=self.getPosFromState(state[0])
-            end=self.getPosFromState(state[2])
+            if self.darwLine:
+                start=self.getPosFromState(state[0])
+                end=self.getPosFromState(state[2])
             # rope=Line(start,end)
-            self.viewer.draw_line(start,end)
+                self.viewer.draw_line(start,end)
 
             # render to display or array
             results.append(self.viewer.render(return_rgb_array= mode== 'rgb_array'))

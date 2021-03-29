@@ -114,8 +114,8 @@ def generateSingleCondition(condition):
         while crossIndex == trajIndex:
             crossIndex=random.randint(0,evalNum-1)
         print(traj[0])
-        newTraj = [[replaceState[0],originalState[1],originalState[2],originalState[3]] for originalState,replaceState in zip (traj,originalTrajList[crossIndex])]
-        newTrajForDraw = [[[replaceState[0],originalState[1],originalState[2],originalState[3]]] for originalState,replaceState in zip (traj,originalTrajList[crossIndex])]
+        newTraj = [[originalState[0],replaceState[1],originalState[2],originalState[3]] for originalState,replaceState in zip (traj,originalTrajList[crossIndex])]
+        newTrajForDraw = [[[originalState[0],replaceState[1],originalState[2],originalState[3]]] for originalState,replaceState in zip (traj,originalTrajList[crossIndex])]
         newTrajListForDraw.append(newTrajForDraw)
         newTrajList.append(newTraj)
 
@@ -128,13 +128,13 @@ def generateSingleCondition(condition):
 
     if visualizeTraj:
         trajSaveName = '2expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed'
-        pictureFolder = os.path.join(dataFolder, 'demo', trajSaveName,'Cross','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
+        pictureFolder = os.path.join(dataFolder, 'demo', trajSaveName,'CrossSheep','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
 
 
 
         if not os.path.exists(pictureFolder):
             os.makedirs(pictureFolder)
-        entitiesColorList = [wolfColor] * numWolves + [sheepColor] * numSheeps + [masterColor] * numMasters + [masterColor] * numDistractor
+        entitiesColorList = [wolfColor] * numWolves + [sheepColor] * numSheeps + [masterColor] * numMasters + [distractorColor] * numDistractor
         render = Render(entitiesSizeList, entitiesColorList, numAgent,pictureFolder,saveImage, getPosFromAgentState)
         trajToRender = np.concatenate(newTrajListForDraw)
         render(trajToRender)

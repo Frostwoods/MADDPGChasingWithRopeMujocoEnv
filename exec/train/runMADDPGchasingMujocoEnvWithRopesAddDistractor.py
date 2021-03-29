@@ -24,7 +24,7 @@ from src.functionTools.editEnvXml import transferNumberListToStr,MakePropertyLis
 
 
 # fixed training parameters
-maxEpisode = 200000#150000
+maxEpisode = 120000#150000
 learningRateActor = 0.01#
 learningRateCritic = 0.01#
 gamma = 0.95 #
