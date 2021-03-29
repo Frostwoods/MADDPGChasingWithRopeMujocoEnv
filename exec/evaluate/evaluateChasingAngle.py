@@ -19,7 +19,7 @@ from env.multiAgentMujocoEnv import RewardSheep, RewardWolf, Observe, IsCollisio
 
 from src.maddpg.trainer.myMADDPG import ActOneStep, BuildMADDPGModels, actByPolicyTrainNoisy
 
-from src.functionTools.loadSaveModel import saveToPickle, restoreVariables,GetSavePath
+from src.functionTools.loadSaveModel import saveToPickle, restoreVariables,GetSavePath，loadFromPickle
 from src.functionTools.trajectory import SampleExpTrajectory
 from src.functionTools.editEnvXml import transferNumberListToStr,MakePropertyList,changeJointProperty
 from src.visualize.visualizeMultiAgent import Render
@@ -75,7 +75,7 @@ def generateSingleCondition(condition):
         saveTraj=True
         saveImage=True
         visualizeMujoco=False
-        visualizeTraj = True
+        visualizeTraj = False
         makeVideo=False
 
     evalNum = 3
@@ -251,6 +251,47 @@ def generateSingleCondition(condition):
         trajToRender = np.concatenate(trajList)
         render(trajToRender)
 
+def readParametersFromDf(oneConditionDf):
+    indexLevelNames = oneConditionDf.index.names
+    parameters = {levelName: oneConditionDf.index.get_level_values(levelName)[0] for levelName in indexLevelNames}
+    return parameters
+
+class LoadTrajectories:
+    def __init__(self, getSavePath, loadFromPickle, fuzzySearchParameterNames=[]):
+        self.getSavePath = getSavePath
+        self.loadFromPickle = loadFromPickle
+        self.fuzzySearchParameterNames = fuzzySearchParameterNames
+
+    def __call__(self, parameters, parametersWithSpecificValues={}):
+        parametersWithFuzzy = dict(list(parameters.items()) + [(parameterName, '*') for parameterName in self.fuzzySearchParameterNames])
+        productedSpecificValues = it.product(*[[(key, value) for value in values] for key, values in parametersWithSpecificValues.items()])
+        parametersFinal = np.array([dict(list(parametersWithFuzzy.items()) + list(specificValueParameter)) for specificValueParameter in productedSpecificValues])
+        genericSavePath = [self.getSavePath(parameters) for parameters in parametersFinal]
+        if len(genericSavePath) != 0:
+            filesNames = np.concatenate([glob.glob(savePath) for savePath in genericSavePath])
+        else:
+            filesNames = []
+        mergedTrajectories = []
+        for fileName in filesNames:
+            oneFileTrajectories = self.loadFromPickle(fileName)
+            mergedTrajectories.extend(oneFileTrajectories)
+        return mergedTrajectories
+def calculateChasingSubtlety(trajs):
+    
+    
+    def calculateIncludedAngle(vector1,vector2):
+        v1=complex(vector1[0],vector1[1])
+        v2=complex(vector2[0],vector2[1])
+
+        return np.angle(v1/v2)
+    wolfSheepAngleList = []
+    for traj in trajs:
+        wolfSheepAngle=np.mean([calculateIncludedAngle() for state in  traj    ])
+        wolfSheepAngleList.append(wolfSheepAngle)
+    averageAngle = np.mean(wolfSheepAngleList)
+
+    return averageAngle
+
 
 def main():
     manipulatedVariables = OrderedDict()
@@ -259,6 +300,10 @@ def main():
     manipulatedVariables['masterForce']=[0.5,1.0]#[0.0, 2.0]
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]
+
+    evalNum=3
+    evaluateEpisode=200000
+
     for condition in conditions:
         print(condition)
         # generateSingleCondition(condition)
@@ -267,5 +312,59 @@ def main():
         except:
             continue
 
+
+    levelNames = list(manipulatedVariables.keys())
+    levelValues = list(manipulatedVariables.values())
+    modelIndex = pd.MultiIndex.from_product(levelValues, names=levelNames)
+    toSplitFrame = pd.DataFrame(index=modelIndex)
+    evalNum=3
+
+    dataFolder = os.path.join(dirName, '..','..', 'data')
+    modelSaveName = 'expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed'
+    trajectoryDirectory= os.path.join(dataFolder,'trajectory',modelSaveName,'normal')  
+    trajectoryExtension = '.pickle'
+
+    trajectoryFixedParameters = {'evalNum':evalNum,'evaluateEpisode':evaluateEpisode}
+    
+    getTrajectorySavePath = GetSavePath(trajectoryDirectory, trajectoryExtension, trajectoryFixedParameters)
+
+    fuzzySearchParameterNames = []
+    loadTrajectories = LoadTrajectories(getTrajectorySavePath, loadFromPickle, fuzzySearchParameterNames)
+    loadTrajectoriesFromDf = lambda df: loadTrajectories(readParametersFromDf(df))
+    measurementFunction = lambda trajectory: calculateChasingSubtlety(trajectory)[0]
+    
+    computeStatistics = ComputeStatistics(loadTrajectoriesFromDf, measurementFunction)
+    statisticsDf = toSplitFrame.groupby(levelNames).apply(computeStatistics)    
+    
+    print(statisticsDf)
+    
+    
+    # fig = plt.figure()
+    # numRows = len(manipulatedVariables['miniBatchSize'])
+    # numColumns = len(manipulatedVariables['depth'])
+    # plotCounter = 1
+
+    # for miniBatchSize, grp in statisticsDf.groupby('miniBatchSize'):
+    #     grp.index = grp.index.droplevel('miniBatchSize')
+
+    #     for depth, group in grp.groupby('depth'):
+    #         group.index = group.index.droplevel('depth')
+
+    #         axForDraw = fig.add_subplot(numRows,numColumns,plotCounter)
+    #         if plotCounter % numColumns == 1:
+    #             axForDraw.set_ylabel('miniBatchSize: {}'.format(miniBatchSize))
+    #         if plotCounter <= numColumns:
+    #             axForDraw.set_title('depth: {}'.format(depth))
+    #         axForDraw.set_ylim(-1, 1.3)
+
+    #         # plt.ylabel('Distance between optimal and actual next position of sheep')
+    #         drawPerformanceLine(group, axForDraw)
+    #         trainStepLevels = statisticsDf.index.get_level_values('trainSteps').values
+    #         axForDraw.plot(trainStepLevels, [1.18]*len(trainStepLevels), label='mctsTrainData')
+    #         plotCounter += 1
+    # # plt.supertitle('Sheep')
+
+    # plt.legend(loc='best')
+    # plt.show()
 if __name__ == '__main__':
     main()
