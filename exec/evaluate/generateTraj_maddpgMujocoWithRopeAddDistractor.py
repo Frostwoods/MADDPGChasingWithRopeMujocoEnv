@@ -64,8 +64,8 @@ def generateSingleCondition(condition):
         frictionloss = float(condition['frictionloss'])
         masterForce = float(condition['masterForce'])
 
-        maxEpisode = 200000
-        evaluateEpisode = 200000
+        maxEpisode = 120000
+        evaluateEpisode = 120000
         numWolves = 1
         numSheeps = 1
         numMasters = 1
@@ -229,18 +229,18 @@ def generateSingleCondition(condition):
 
 def main():
     manipulatedVariables = OrderedDict()
-    manipulatedVariables['damping'] = [0.5,1.0]#[0.0, 1.0]sb
-    manipulatedVariables['frictionloss'] =[0.1,0.2]# [0.0, 0.2, 0.4]
-    manipulatedVariables['masterForce']=[0.5,1.0]#[0.0, 2.0]
+    manipulatedVariables['damping'] = [0.2,0.4,0.6]#[0.0, 1.0]sb
+    manipulatedVariables['frictionloss'] =[0.2,0.4,0.8]# [0.0, 0.2, 0.4]
+    manipulatedVariables['masterForce']=[1.0]#[0.0, 2.0]
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]
     for condition in conditions:
         print(condition)
-        # generateSingleCondition(condition)
-        try:
-            generateSingleCondition(condition)
-        except:
-            continue
+        generateSingleCondition(condition)
+        # try:
+            # generateSingleCondition(condition)
+        # except:
+            # continue
 
 if __name__ == '__main__':
     main()

@@ -64,8 +64,8 @@ def generateSingleCondition(condition):
         frictionloss = float(condition['frictionloss'])
         masterForce = float(condition['masterForce'])
         distractorNoise = float(condition['distractorNoise'])
-        maxEpisode = 120000
-        evaluateEpisode = 120000
+        maxEpisode = 200000
+        evaluateEpisode = 200000
         numWolves = 1
         numSheeps = 1
         numMasters = 1
@@ -80,7 +80,7 @@ def generateSingleCondition(condition):
 
     evalNum = 3
     maxRunningStepsToSample = 100
-    modelSaveName = 'expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed'
+    modelSaveName = '2expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed'
     print("maddpg: , saveTraj: {}, visualize: {},damping; {},frictionloss: {}".format( str(saveTraj), str(visualizeMujoco),damping,frictionloss))
 
 
@@ -251,7 +251,7 @@ def generateSingleCondition(condition):
 
         if not os.path.exists(pictureFolder):
             os.makedirs(pictureFolder)
-        entitiesColorList = [wolfColor] * numWolves + [sheepColor] * numSheeps + [masterColor] * numMasters + [masterColor] * numDistractor
+        entitiesColorList = [wolfColor] * numWolves + [sheepColor] * numSheeps + [masterColor] * numMasters + [distractorColor] * numDistractor
         render = Render(entitiesSizeList, entitiesColorList, numAgent,pictureFolder,saveImage, getPosFromAgentState)
         trajToRender = np.concatenate(trajList)
         render(trajToRender)
@@ -259,10 +259,10 @@ def generateSingleCondition(condition):
 
 def main():
     manipulatedVariables = OrderedDict()
-    manipulatedVariables['damping'] = [0.0]#[0.0, 1.0]
-    manipulatedVariables['frictionloss'] =[0.0]# [0.0, 0.2, 0.4]
-    manipulatedVariables['masterForce']=[0.0]#[0.0, 2.0]
-    manipulatedVariables['distractorNoise']=[0,1,2,3,4]
+    manipulatedVariables['damping'] = [0.5]#[0.0, 1.0]
+    manipulatedVariables['frictionloss'] =[0.1]# [0.0, 0.2, 0.4]
+    manipulatedVariables['masterForce']=[0.5]#[0.0, 2.0]
+    manipulatedVariables['distractorNoise']=[0,3]
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]
     for condition in conditions:

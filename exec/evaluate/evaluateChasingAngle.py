@@ -14,6 +14,7 @@ import pandas as pd
 import itertools as it
 from collections import OrderedDict
 import numpy as np
+import glob
 from env.multiAgentMujocoEnv import RewardSheep, RewardWolf, Observe, IsCollision, getPosFromAgentState, \
     getVelFromAgentState,PunishForOutOfBound,ReshapeAction, TransitionFunctionWithoutXPos, ResetUniformWithoutXPosForLeashed
 
@@ -78,7 +79,7 @@ def generateSingleCondition(condition):
         visualizeTraj = False
         makeVideo=False
 
-    evalNum = 3
+    evalNum = 100
     maxRunningStepsToSample = 100
     modelSaveName = 'expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed'
     print("maddpg: , saveTraj: {}, visualize: {},damping; {},frictionloss: {}".format( str(saveTraj), str(visualizeMujoco),damping,frictionloss))
@@ -184,7 +185,7 @@ def generateSingleCondition(condition):
 
     initObsForParams = observe(reset())
     obsShape = [initObsForParams[obsID].shape[0] for obsID in range(len(initObsForParams))]
-    print('24e',obsShape)
+    # print('24e',obsShape)
     worldDim = 2
     actionDim = worldDim * 2 + 1
 
@@ -276,22 +277,24 @@ class LoadTrajectories:
             oneFileTrajectories = self.loadFromPickle(fileName)
             mergedTrajectories.extend(oneFileTrajectories)
         return mergedTrajectories
-def calculateChasingSubtlety(trajs):
+def calculateChasingSubtlety(traj):
+    # print(traj[0][1])
 
-
+    reshapeActon = ReshapeAction(5)
     def calculateIncludedAngle(vector1,vector2):
+        # print(vector1,vector2)
         v1=complex(vector1[0],vector1[1])
         v2=complex(vector2[0],vector2[1])
 
-        return np.angle(v1/v2)
+        return np.abs(np.angle(v1/v2))*180/np.pi
     wolfSheepAngleList = []
-    for traj in trajs:
-        wolfSheepAngle=np.mean([calculateIncludedAngle() for state in  traj    ])
-        wolfSheepAngleList.append(wolfSheepAngle)
+    # for traj in trajs:
+    wolfSheepAngle=np.mean([calculateIncludedAngle(reshapeActon(state[1][0]),np.array(state[0][0][0:2])-np.array(state[0][1][0:2])) for state in  traj    ])
+    wolfSheepAngleList.append(wolfSheepAngle)
     averageAngle = np.mean(wolfSheepAngleList)
-
+    # print(wolfSheepAngle)
     return averageAngle
-    
+
 class ComputeStatistics:
     def __init__(self, getTrajectories, measurementFunction):
         self.getTrajectories = getTrajectories
@@ -306,29 +309,29 @@ class ComputeStatistics:
 
 def main():
     manipulatedVariables = OrderedDict()
-    manipulatedVariables['damping'] = [0.5,1.0]#[0.0, 1.0]
-    manipulatedVariables['frictionloss'] =[0.1,0.2]# [0.0, 0.2, 0.4]
-    manipulatedVariables['masterForce']=[0.5,1.0]#[0.0, 2.0]
+    manipulatedVariables['damping'] = [0.0,1.0]#[0.0, 1.0]
+    manipulatedVariables['frictionloss'] =[0.0,0.2]# [0.0, 0.2, 0.4]
+    manipulatedVariables['masterForce']=[0.0,1.0]#[0.0, 2.0]
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]
 
-    evalNum=3
-    evaluateEpisode=200000
+    evalNum=100
+    evaluateEpisode=120000
 
-    # for condition in conditions:
+    for condition in conditions:
     #     print(condition)
-    #     # generateSingleCondition(condition)
-    #     try:
-    #         generateSingleCondition(condition)
-    #     except:
-    #         continue
+        # generateSingleCondition(condition)
+        try:
+            generateSingleCondition(condition)
+        except:
+            continue
 
 
     levelNames = list(manipulatedVariables.keys())
     levelValues = list(manipulatedVariables.values())
     modelIndex = pd.MultiIndex.from_product(levelValues, names=levelNames)
     toSplitFrame = pd.DataFrame(index=modelIndex)
-    evalNum=3
+
 
     dataFolder = os.path.join(dirName, '..','..', 'data')
     modelSaveName = 'expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed'
@@ -342,40 +345,47 @@ def main():
     fuzzySearchParameterNames = []
     loadTrajectories = LoadTrajectories(getTrajectorySavePath, loadFromPickle, fuzzySearchParameterNames)
     loadTrajectoriesFromDf = lambda df: loadTrajectories(readParametersFromDf(df))
-    measurementFunction = lambda trajectory: calculateChasingSubtlety(trajectory)[0]
+    measurementFunction = lambda trajectory: calculateChasingSubtlety(trajectory)
 
     computeStatistics = ComputeStatistics(loadTrajectoriesFromDf, measurementFunction)
     statisticsDf = toSplitFrame.groupby(levelNames).apply(computeStatistics)
 
     print(statisticsDf)
 
+    manipulatedVariables = OrderedDict()
+    manipulatedVariables['damping'] = [0,1.0]#[0.0, 1.0]
+    manipulatedVariables['frictionloss'] =[0,0.2]# [0.0, 0.2, 0.4]
+    manipulatedVariables['masterForce']=[0,1.0]#[0.0, 2.0]
+    from matplotlib import pyplot as plt
+    fig = plt.figure()
+    numRows = len(manipulatedVariables['damping'])
+    numColumns = len(manipulatedVariables['frictionloss'])
 
-    # fig = plt.figure()
-    # numRows = len(manipulatedVariables['miniBatchSize'])
-    # numColumns = len(manipulatedVariables['depth'])
-    # plotCounter = 1
+    def drawPerformanceLine(dataDF,axForDraw):
+        dataDF.plot(ax=axForDraw,label='masterForce',y='mean',yerr='std',marker='o',logx=False)
 
-    # for miniBatchSize, grp in statisticsDf.groupby('miniBatchSize'):
-    #     grp.index = grp.index.droplevel('miniBatchSize')
+    plotCounter = 1
+    for damping, grp in statisticsDf.groupby('damping'):
+        grp.index = grp.index.droplevel('damping')
 
-    #     for depth, group in grp.groupby('depth'):
-    #         group.index = group.index.droplevel('depth')
+        for frictionloss, group in grp.groupby('frictionloss'):
+            group.index = group.index.droplevel('frictionloss')
 
-    #         axForDraw = fig.add_subplot(numRows,numColumns,plotCounter)
-    #         if plotCounter % numColumns == 1:
-    #             axForDraw.set_ylabel('miniBatchSize: {}'.format(miniBatchSize))
-    #         if plotCounter <= numColumns:
-    #             axForDraw.set_title('depth: {}'.format(depth))
-    #         axForDraw.set_ylim(-1, 1.3)
+            axForDraw = fig.add_subplot(numRows,numColumns,plotCounter)
+            if plotCounter % numColumns == 1:
+                axForDraw.set_ylabel('damping: {}'.format(damping))
+            if plotCounter <= numColumns:
+                axForDraw.set_title('frictionloss: {}'.format(frictionloss))
+            axForDraw.set_ylim(0, 180)
+#
+            # plt.ylabel('chasing subtlety')
+            drawPerformanceLine(group, axForDraw)
+            # trainStepLevels = statisticsDf.index.get_level_values('trainSteps').values
+            # axForDraw.plot(trainStepLevels, [1.18]*len(trainStepLevels), label='mctsTrainData')
+            plotCounter += 1
+    plt.suptitle('chasing subtlety')
 
-    #         # plt.ylabel('Distance between optimal and actual next position of sheep')
-    #         drawPerformanceLine(group, axForDraw)
-    #         trainStepLevels = statisticsDf.index.get_level_values('trainSteps').values
-    #         axForDraw.plot(trainStepLevels, [1.18]*len(trainStepLevels), label='mctsTrainData')
-    #         plotCounter += 1
-    # # plt.supertitle('Sheep')
-
-    # plt.legend(loc='best')
-    # plt.show()
+    plt.legend(loc='best')
+    plt.show()
 if __name__ == '__main__':
     main()
