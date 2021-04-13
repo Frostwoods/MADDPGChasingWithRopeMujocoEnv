@@ -204,15 +204,15 @@
     <contact>
 
 
-        <exclude body1="prey0" body2="middle1"/>
-        <exclude body1="prey0" body2="middle2"/>
-        <exclude body1="prey0" body2="middle3"/>
-        <exclude body1="prey0" body2="middle4"/>
-        <exclude body1="prey0" body2="middle5"/>
-        <exclude body1="prey0" body2="middle6"/>
-        <exclude body1="prey0" body2="middle7"/>
-        <exclude body1="prey0" body2="middle8"/>
-        <exclude body1="prey0" body2="middle9"/>
+        <exclude body1="predator0" body2="middle1"/>
+        <exclude body1="predator0" body2="middle2"/>
+        <exclude body1="predator0" body2="middle3"/>
+        <exclude body1="predator0" body2="middle4"/>
+        <exclude body1="predator0" body2="middle5"/>
+        <exclude body1="predator0" body2="middle6"/>
+        <exclude body1="predator0" body2="middle7"/>
+        <exclude body1="predator0" body2="middle8"/>
+        <exclude body1="predator0" body2="middle9"/>
 
         <exclude body1="dragger0" body2="middle1"/>
         <exclude body1="dragger0" body2="middle2"/>

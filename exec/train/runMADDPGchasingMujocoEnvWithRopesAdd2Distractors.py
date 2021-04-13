@@ -95,13 +95,13 @@ def main():
     punishForOutOfBound = PunishForOutOfBound()
     rewardSheep = RewardSheep(wolvesID, sheepsID, entitiesSizeList, getPosFromAgentState, isCollision, punishForOutOfBound)
     rewardWolf = RewardWolf(wolvesID, sheepsID, entitiesSizeList, isCollision)
-    rewardDistractor1 = RewardSheep(wolvesID+sheepsID+masterID+distractorID[1], distractorID[0], entitiesSizeList, getPosFromAgentState, isCollision,punishForOutOfBound)
-    rewardDistractor2 = RewardSheep(wolvesID+sheepsID+masterID+distractorID[0], distractorID[1], entitiesSizeList, getPosFromAgentState, isCollision,punishForOutOfBound)
+    rewardDistractor1 = RewardSheep(wolvesID+sheepsID+masterID+[distractorID[1]], [distractorID[0]], entitiesSizeList, getPosFromAgentState, isCollision,punishForOutOfBound)
+    rewardDistractor2 = RewardSheep(wolvesID+sheepsID+masterID+[distractorID[0]], [distractorID[1]], entitiesSizeList, getPosFromAgentState, isCollision,punishForOutOfBound)
     rewardMaster= lambda state, action, nextState: [-reward  for reward in rewardWolf(state, action, nextState)]
 
 
     rewardFunc = lambda state, action, nextState: \
-        list(rewardWolf(state, action, nextState)) + list(rewardSheep(state, action, nextState)) + list(rewardMaster(state, action, nextState)) + list(rewardDistractor1(state, action, nextState) + list(rewardDistractor2(state, action, nextState))
+        list(rewardWolf(state, action, nextState)) + list(rewardSheep(state, action, nextState)) + list(rewardMaster(state, action, nextState)) + list(rewardDistractor1(state, action, nextState)) + list(rewardDistractor2(state, action, nextState))
 
     physicsDynamicsPath=os.path.join(dirName,'..','..','env','xml','leased2Distractor.xml')
     with open(physicsDynamicsPath) as f:
@@ -144,7 +144,7 @@ def main():
 
     numSimulationFrames=10
     isTerminal= lambda state: False
-    reshapeActionList = [ReshapeAction(5),ReshapeAction(5),ReshapeAction(masterForce),ReshapeAction(5)]
+    reshapeActionList = [ReshapeAction(5),ReshapeAction(5),ReshapeAction(masterForce),ReshapeAction(5),ReshapeAction(5)]
     transit=TransitionFunctionWithoutXPos(physicsSimulation, numSimulationFrames, visualize,isTerminal, reshapeActionList)
 
     observeOneAgent = lambda agentID: Observe(agentID, wolvesID, sheepsID + masterID +distractorID, [], getPosFromAgentState,getVelFromAgentState)
