@@ -254,8 +254,8 @@ def generateSingleCondition(condition):
 
 def main():
     manipulatedVariables = OrderedDict()
-    manipulatedVariables['damping'] = [0.4]#[0.0, 1.0]
-    manipulatedVariables['frictionloss'] =[0.4,0.8,1.6]# [0.0, 0.2, 0.4]
+    manipulatedVariables['damping'] = [0.6]#[0.0, 1.0]
+    manipulatedVariables['frictionloss'] =[0.4,0.8,1.6,3.2]# [0.0, 0.2, 0.4]
     manipulatedVariables['masterForce']=[1.0]#[0.0, 2.0]
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]

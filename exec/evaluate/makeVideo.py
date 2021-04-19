@@ -67,8 +67,8 @@ def makeVideo(condition):
 def main():
 
     manipulatedVariables = OrderedDict()
-    manipulatedVariables['damping'] = [0.4]#[0.0, 1.0]
-    manipulatedVariables['frictionloss'] =[0.4,0.8,1.6]# [0.0, 0.2, 0.4]
+    manipulatedVariables['damping'] = [0.6]#[0.0, 1.0]
+    manipulatedVariables['frictionloss'] =[0.4,0.8,1.6,3.2]# [0.0, 0.2, 0.4]
     manipulatedVariables['masterForce']=[1.0]#[0.0, 2.0]
     # manipulatedVariables['distractorNoise']=[0,3]
     # manipulatedVariables['offsetFrame']=[4,8,12]
