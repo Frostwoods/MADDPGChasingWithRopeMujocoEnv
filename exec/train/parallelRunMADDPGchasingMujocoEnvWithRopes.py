@@ -41,7 +41,7 @@ class ExcuteCodeOnConditionsParallel:
 def main():
     startTime = time.time()
     # fileName = 'runMADDPGchasingMujocoEnvWithRopes.py'
-    fileName = 'runMADDPGchasingMujocoEnvWithRopesAdd2Distractors.py'
+    fileName = 'runMADDPGchasingMujocoEnvWithRopesAdd2DistractorsWithRopePunish.py'
     numSample = None
     numCpuToUse = 27#int(0.8 * os.cpu_count())
     excuteCodeParallel = ExcuteCodeOnConditionsParallel(fileName, numSample, numCpuToUse)
