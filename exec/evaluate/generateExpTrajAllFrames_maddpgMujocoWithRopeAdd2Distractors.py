@@ -236,8 +236,8 @@ def generateSingleCondition(condition):
             os.makedirs(expTrajectoriesSaveDirectory)
 
         generateExpTrajectorySavePath = GetSavePath(expTrajectoriesSaveDirectory, trajectorySaveExtension, fixedParameters)
-        exoTrajectorySavePath = generateExpTrajectorySavePath({})
-        saveToPickle(expTrajList, exoTrajectorySavePath)
+        expTrajectorySavePath = generateExpTrajectorySavePath({})
+        saveToPickle(expTrajList, expTrajectorySavePath)
 
     # visualize
     if visualizeTraj:
@@ -248,15 +248,17 @@ def generateSingleCondition(condition):
             os.makedirs(pictureFolder)
         entitiesColorList = [wolfColor] * numWolves + [sheepColor] * numSheeps + [masterColor] * numMasters + [distractorColor] * numDistractor
         render = Render(entitiesSizeList, entitiesColorList, numAgent,pictureFolder,saveImage, getPosFromAgentState)
-        trajToRender = np.concatenate(trajList)
+        trajToRender = np.concatenate(expTrajList)
+        print(np.size(trajToRender,1))
         render(trajToRender)
 
 
 def main():
+
     manipulatedVariables = OrderedDict()
-    manipulatedVariables['damping'] = [0.4]#[0.0, 1.0]
-    manipulatedVariables['frictionloss'] =[0.4,0.8,1.6]# [0.0, 0.2, 0.4]
-    manipulatedVariables['masterForce']=[1.0]#[0.0, 2.0]
+    manipulatedVariables['damping'] = [0.0,0.5]#[0.0, 1.0]
+    manipulatedVariables['frictionloss'] =[0.0]# [0.0, 0.2, 0.4]
+    manipulatedVariables['masterForce']=[0.0, 1.0]#[0.0, 2.0]    
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]
     for condition in conditions:

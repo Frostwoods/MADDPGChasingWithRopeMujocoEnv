@@ -396,7 +396,7 @@ class Render:
             self.viewer.set_bounds(pos[0] - cam_range, pos[0] + cam_range, pos[1] - cam_range, pos[1] + cam_range)
             # update geometry positions
 
-            state = trajectory[timeStep][0]
+            state = trajectory[timeStep]
             for entityID in range(self.numEntities):
                 agentState = state[entityID]
                 entityPos = self.getPosFromState(agentState)
