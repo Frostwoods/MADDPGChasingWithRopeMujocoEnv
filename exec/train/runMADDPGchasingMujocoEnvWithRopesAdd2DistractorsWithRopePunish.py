@@ -90,7 +90,9 @@ def main():
     sheepSize = 0.075
     masterSize = 0.075
     distractorSize =0.075
-    entitiesSizeList = [wolfSize] * numWolves + [sheepSize] * numSheeps + [masterSize] * numMasters + [distractorSize] * numDistractor
+    knotSIze = 0
+
+    entitiesSizeList = [wolfSize] * numWolves + [sheepSize] * numSheeps + [masterSize] * numMasters + [distractorSize] * numDistractor + [knotSIze] * numKnots
 
     killZone = wolfSize*0.5
     isCollision = IsCollision(getPosFromAgentState, killZone)
@@ -100,8 +102,7 @@ def main():
     rewardSheep = RewardSheep(wolvesID, sheepsID, entitiesSizeList, getPosFromAgentState, isCollision, punishForOutOfBound)
     punishRope = RewardSheep(ropePartIndex, sheepsID, entitiesSizeList, getPosFromAgentState, isCollision, zeroPunishForOutOfBound)
     ropeWeight=0.1
-    rewardSheepWithRopePunish = lambda state, action, nextState:
-    [sheepRewrad  + ropePunish * ropeWeight for sheepRewrad,ropePunish in zip(rewardSheep( state, action, nextState),punishRope( state, action, nextState))]
+    rewardSheepWithRopePunish = lambda state, action, nextState: [sheepRewrad  + ropePunish * ropeWeight for sheepRewrad,ropePunish in zip(rewardSheep( state, action, nextState),punishRope( state, action, nextState))]
 
     rewardWolf = RewardWolf(wolvesID, sheepsID, entitiesSizeList, isCollision)
 
