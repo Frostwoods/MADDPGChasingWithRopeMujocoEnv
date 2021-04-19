@@ -88,6 +88,44 @@ class TransitionFunctionWithoutXPos:
 
         return newState
 
+class TransitionFunctionWithoutXPosForExp:
+    def __init__(self, simulation,numSimulationFrames,visualize, isTerminal, reshapeActionList):
+        self.simulation = simulation
+        self.isTerminal = isTerminal
+        self.numSimulationFrames = numSimulationFrames
+        self.numJointEachSite = int(self.simulation.model.njnt/self.simulation.model.nsite)
+        self.reshapeActionList=reshapeActionList
+        self.visualize=visualize
+        if visualize:
+            self.physicsViewer = mujoco.MjViewer(simulation)
+
+    def __call__(self, state, actions):
+        actions = [reshapeAction(action) for action,reshapeAction in zip(actions,self.reshapeActionList)]
+        state = np.asarray(state)
+        actions = np.asarray(actions)
+        numAgent = len(state)
+        oldQPos = state[:, 0:self.numJointEachSite].flatten()
+        oldQVel = state[:, -self.numJointEachSite:].flatten()
+        self.simulation.data.qpos[:] = oldQPos
+        self.simulation.data.qvel[:] = oldQVel
+        self.simulation.data.ctrl[:] = actions.flatten()
+        newStateAllframes = []
+        for simulationFrame in range(self.numSimulationFrames):
+            self.simulation.step()
+            self.simulation.forward()
+            if self.visualize:
+                self.physicsViewer.render()
+            newQPos, newQVel = self.simulation.data.qpos, self.simulation.data.qvel
+
+            agentNewQPos = lambda agentIndex: newQPos[self.numJointEachSite * agentIndex : self.numJointEachSite * (agentIndex + 1)]
+            agentNewQVel = lambda agentIndex: newQVel[self.numJointEachSite * agentIndex : self.numJointEachSite * (agentIndex + 1)]
+            agentNewState = lambda agentIndex: np.concatenate([agentNewQPos(agentIndex), agentNewQVel(agentIndex)])
+            newState = np.asarray([agentNewState(agentIndex) for agentIndex in range(numAgent)])
+            newStateAllframes.append(newState)
+            if self.isTerminal(newState):
+                break
+
+        return newState,newStateAllframes
 
 class IsCollision:
     def __init__(self, getPosFromState, killZone = 0):
