@@ -26,27 +26,27 @@ def makeVideo(condition):
         # distractorNoise = float(condition['distractorNoise'])
         # offsetFrame = int(condition['offsetFrame'])
         numTrajToSample=3
-        maxRunningStepsToSample=100
+        maxRunningStepsToSample=1001
 
 
     dataFolder = os.path.join(dirName, '..','..', 'data')
     mainDemoFolder = os.path.join(dataFolder,'demo')
-
-    videoFolder=os.path.join(mainDemoFolder, 'expTrajMADDPGMujocoEnvWithRopeAdd2Distractors','normal')
+    # videoFolder=os.path.join(mainDemoFolder, 'expTrajMADDPGMujocoEnvWithRopeAdd2Distractors','normal')
+    videoFolder=os.path.join(mainDemoFolder, 'expTrajMADDPGMujocoEnvWithRopeAdd2DistractorsWithRopePunish','normal')
     # videoFolder=os.path.join(mainDemoFolder, 'expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed','CrossSheep',)
     # videoFolder=os.path.join(mainDemoFolder, '2expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed','noise','NoiseDistractor')
     # videoFolder=os.path.join(mainDemoFolder, '2expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed','OffsetWolfForward')
     if not os.path.exists(videoFolder):
         os.makedirs(videoFolder)
-
-    videoPath= os.path.join(videoFolder,'MADDPGMujocoEnvWithRopeAdd2Distractor_damping={}_frictionloss={}_masterForce={}.avi'.format(damping,frictionloss,masterForce))
+    # videoPath= os.path.join(videoFolder,'MADDPGMujocoEnvWithRopeAdd2Distractor_damping={}_frictionloss={}_masterForce={}.avi'.format(damping,frictionloss,masterForce))
+    videoPath= os.path.join(videoFolder,'MADDPGMujocoEnvWithRopeAdd2DistractorWithRopePunish_damping={}_frictionloss={}_masterForce={}.avi'.format(damping,frictionloss,masterForce))
 
     # videoPath= os.path.join(videoFolder,'CrossSheepMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed_damping={}_frictionloss={}_masterForce={}.avi'.format(damping,frictionloss,masterForce))
     # videoPath= os.path.join(videoFolder,'OffsetWolfForwardMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed_damping={}_frictionloss={}_masterForce={}_offsetFrame={}.avi'.format(damping,frictionloss,masterForce,offsetFrame))
     # videoPath = os.path.join(videoFolder,'damping={}_frictionloss={}_masterForce={}_distractorNoise={}.avi'.format(damping,frictionloss,masterForce,distractorNoise))
     # videoPath = os.path.join(videoFolder,'damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
     print(videoPath)
-    fps = 8
+    fps = 50
     size=(700,700)
     fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
     # fourcc = 0
@@ -67,9 +67,9 @@ def makeVideo(condition):
 def main():
 
     manipulatedVariables = OrderedDict()
-    manipulatedVariables['damping'] = [0.6]#[0.0, 1.0]
-    manipulatedVariables['frictionloss'] =[0.4,0.8,1.6,3.2]# [0.0, 0.2, 0.4]
-    manipulatedVariables['masterForce']=[1.0]#[0.0, 2.0]
+    manipulatedVariables['damping'] = [0.0,0.5]#[0.0, 1.0]
+    manipulatedVariables['frictionloss'] =[1.0]# [0.0, 0.2, 0.4]
+    manipulatedVariables['masterForce']=[0.0, 1.0]#[0.0, 2.0]
     # manipulatedVariables['distractorNoise']=[0,3]
     # manipulatedVariables['offsetFrame']=[4,8,12]
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
@@ -82,7 +82,7 @@ def main():
             # makeVideo(condition)
         # except :
             # print('error',condition)
-# 
+#
 
 if __name__ == '__main__':
     main()
