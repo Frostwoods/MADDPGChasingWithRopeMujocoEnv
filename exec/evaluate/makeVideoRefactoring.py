@@ -1,11 +1,12 @@
 
 import os
 dirName = os.path.dirname(__file__)
-
+import sys
+sys.path.append(os.path.join(dirName, '..', '..'))
 import cv2
 from collections import OrderedDict
 import itertools as it
-
+from src.functionTools.loadSaveModel import GetSavePath
 
 def makeVideo(condition):
     debug = 0
@@ -67,14 +68,19 @@ def makeVideo(condition):
 def main():
 
     manipulatedVariables = OrderedDict()
-    manipulatedVariables['damping'] = [0.6]#[0.0, 1.0]
-    manipulatedVariables['frictionloss'] =[0.4,0.8,1.6,3.2]# [0.0, 0.2, 0.4]
+    manipulatedVariables['damping'] = [0.4]#[0.0, 1.0]
+    manipulatedVariables['frictionloss'] =[0.4,0.8,1.6]# [0.0, 0.2, 0.4]
     manipulatedVariables['masterForce']=[1.0]#[0.0, 2.0]
     # manipulatedVariables['distractorNoise']=[0,3]
     # manipulatedVariables['offsetFrame']=[4,8,12]
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]
 
+
+
+    pictureFolder
+    videoFolder
+    videoName
     for condition in conditions:
         print(condition)
         makeVideo(condition)

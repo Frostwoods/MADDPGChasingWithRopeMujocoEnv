@@ -14,13 +14,13 @@ import mujoco_py as mujoco
 import itertools as it
 from collections import OrderedDict
 import numpy as np
-from env.multiAgentMujocoEnv import RewardSheep, RewardWolf, Observe, IsCollision, getPosFromAgentState, \
+from env.multiAgentMujocoEnv import TransitionFunctionWithoutXPosForExp, RewardSheep, RewardWolf, Observe, IsCollision, getPosFromAgentState, \
     getVelFromAgentState,PunishForOutOfBound,ReshapeAction, TransitionFunctionWithoutXPos, ResetUniformWithoutXPosForLeashed
 
 from src.maddpg.trainer.myMADDPG import ActOneStep, BuildMADDPGModels, actByPolicyTrainNoisy
 
 from src.functionTools.loadSaveModel import saveToPickle, restoreVariables,GetSavePath
-from src.functionTools.trajectory import SampleExpTrajectory
+from src.functionTools.trajectory import SampleExpTrajectory,SampleExpTrajectoryWithAllFrames
 from src.functionTools.editEnvXml import transferNumberListToStr,MakePropertyList,changeJointProperty
 from src.visualize.visualizeMultiAgent import Render
 
@@ -63,13 +63,13 @@ def generateSingleCondition(condition):
         damping = float(condition['damping'])
         frictionloss = float(condition['frictionloss'])
         masterForce = float(condition['masterForce'])
-        distractorNoise = float(condition['distractorNoise'])
-        maxEpisode = 200000
-        evaluateEpisode = 200000
+
+        maxEpisode = 120000
+        evaluateEpisode = 120000
         numWolves = 1
         numSheeps = 1
         numMasters = 1
-        numDistractor = 1
+        numDistractor = 2
         maxTimeStep = 25
 
         saveTraj=True
@@ -80,7 +80,9 @@ def generateSingleCondition(condition):
 
     evalNum = 3
     maxRunningStepsToSample = 100
-    modelSaveName = '2expTrajMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed'
+
+    modelSaveName = 'expTrajMADDPGMujocoEnvWithRopeAdd2DistractorsWithRopePunish'
+    # modelSaveName = 'expTrajMADDPGMujocoEnvWithRopeAdd2Distractors'
     print("maddpg: , saveTraj: {}, visualize: {},damping; {},frictionloss: {}".format( str(saveTraj), str(visualizeMujoco),damping,frictionloss))
 
 
@@ -88,7 +90,7 @@ def generateSingleCondition(condition):
     wolvesID = [0]
     sheepsID = [1]
     masterID = [2]
-    distractorID = [3]
+    distractorID = [3,4]
 
     wolfSize = 0.05
     sheepSize = 0.05
@@ -110,20 +112,20 @@ def generateSingleCondition(condition):
         list(rewardWolf(state, action, nextState)) + list(rewardSheep(state, action, nextState))\
         + list(rewardMaster(state, action, nextState) )+ list(rewardDistractor(state, action, nextState))
 
-    physicsDynamicsPath=os.path.join(dirName,'..','..','env','xml','leasedAddDistractor.xml')
+    physicsDynamicsPath=os.path.join(dirName,'..','..','env','xml','leased2Distractor.xml')
     with open(physicsDynamicsPath) as f:
         xml_string = f.read()
 
     makePropertyList=MakePropertyList(transferNumberListToStr)
 
-    geomIds=[1,2,3,4]
+    geomIds=[1,2,3,4,5]
     keyNameList=[0,1]
     valueList=[[damping,damping]]*len(geomIds)
     dampngParameter=makePropertyList(geomIds,keyNameList,valueList)
 
     changeJointDampingProperty=lambda envDict,geomPropertyDict:changeJointProperty(envDict,geomPropertyDict,'@damping')
 
-    geomIds=[1,2,3,4]
+    geomIds=[1,2,3,4,5]
     keyNameList=[0,1]
     valueList=[[frictionloss,frictionloss]]*len(geomIds)
     frictionlossParameter=makePropertyList(geomIds,keyNameList,valueList)
@@ -153,34 +155,29 @@ def generateSingleCondition(condition):
     reset = ResetUniformWithoutXPosForLeashed(physicsSimulation, qPosInit, qVelInit, numAgent, tiedAgentId,ropePartIndex, maxRopePartLength, qPosInitNoise, qVelInitNoise)
     numSimulationFrames=10
     isTerminal= lambda state: False
-
-
     distractorReshapeAction=ReshapeAction(5)
-
     noiseMean = (0, 0)
-    noiseCov = [[distractorNoise, 0], [0, distractorNoise]]
+    noiseCov = [[1, 0], [0, 1]]
     # x = np.random.multivariate_normal(noiseMean, noiseCov, (1, 1), 'raise')[0]
-    class LimitForceMagnitude():
-        def __init__(self,entityMaxForceMagnitude=None):
-            self.entityMaxForceMagnitude = entityMaxForceMagnitude
+    class LimitSpeed():
+        def __init__(self,entityMaxSpeed=None):
+            self.entityMaxSpeed = entityMaxSpeed
 
-        def __call__(self,entityNextForce):
-            if self.entityMaxForce is not None:
-                forceMagnitude = np.sqrt(np.square(entityNextForce[0]) + np.square(entityNextForce[1])) #
-            if forceMagnitude > self.entityMaxForceMagnitude:
-                entityNextForce = entityNextForce / forceMagnitude * self.entityMaxForceMagnitude
-
-            return entityNextForce
-
-    limitForceMagnitude = LimitForceMagnitude(5)
+        def __call__(self,entityNextVel):
+            if self.entityMaxSpeed is not None:
+                speed = np.sqrt(np.square(entityNextVel[0]) + np.square(entityNextVel[1])) #
+            if speed > entityMaxSpeed:
+                entityNextVel = entityNextVel / speed * entityMaxSpeed
+    limitSpeed = LimitSpeed(5)
 
 
-    noiseDistractorAction= lambda state: limitForceMagnitude(distractorReshapeAction(state) + np.random.multivariate_normal(noiseMean, noiseCov,(1))[0])
-    reshapeActionList = [ReshapeAction(5),ReshapeAction(5),ReshapeAction(masterForce),noiseDistractorAction]
-    transit=TransitionFunctionWithoutXPos(physicsSimulation, numSimulationFrames, visualizeMujoco,isTerminal, reshapeActionList)
+    noiseDistractorAction= lambda state:LimitSpeed(distractorReshapeAction(state)+np.random.multivariate_normal(noiseMean, noiseCov, (1, 1), 'raise')[0])
+
+    reshapeActionList = [ReshapeAction(5),ReshapeAction(5),ReshapeAction(masterForce),ReshapeAction(5),ReshapeAction(5)]
+    transit=TransitionFunctionWithoutXPosForExp(physicsSimulation, numSimulationFrames, visualizeMujoco,isTerminal, reshapeActionList)
 
 
-    sampleTrajectory = SampleExpTrajectory(maxRunningStepsToSample, transit, isTerminal, rewardFunc, reset)
+    sampleTrajectory = SampleExpTrajectoryWithAllFrames(maxRunningStepsToSample, transit, isTerminal, rewardFunc, reset)
 
 
     observeOneAgent = lambda agentID: Observe(agentID, wolvesID, sheepsID + masterID +distractorID, [], getPosFromAgentState, getVelFromAgentState)
@@ -226,47 +223,48 @@ def generateSingleCondition(condition):
     if saveTraj:
         # trajFileName = "maddpg{}wolves{}sheep{}blocks{}eps{}step{}Traj".format(numWolves, numSheeps, numMasters, maxEpisode, maxTimeStep)
 
-        trajectoriesSaveDirectory= os.path.join(dataFolder,'trajectory',modelSaveName,'noise')
+        trajectoriesSaveDirectory= os.path.join(dataFolder,'trajectory',modelSaveName,'normal')
         if not os.path.exists(trajectoriesSaveDirectory):
             os.makedirs(trajectoriesSaveDirectory)
 
         trajectorySaveExtension = '.pickle'
-        fixedParameters = {'damping': damping,'frictionloss':frictionloss,'masterForce':masterForce,'evalNum':evalNum,'evaluateEpisode':evaluateEpisode,'distractorNoise':distractorNoise}
+        fixedParameters = {'damping': damping,'frictionloss':frictionloss,'masterForce':masterForce,'evalNum':evalNum,'evaluateEpisode':evaluateEpisode}
         generateTrajectorySavePath = GetSavePath(trajectoriesSaveDirectory, trajectorySaveExtension, fixedParameters)
         trajectorySavePath = generateTrajectorySavePath({})
         saveToPickle(trajList, trajectorySavePath)
 
-        expTrajectoriesSaveDirectory = os.path.join(dataFolder, 'expTrajectory', modelSaveName,'noise')
+        expTrajectoriesSaveDirectory = os.path.join(dataFolder, 'expTrajectory', modelSaveName,'normal')
         if not os.path.exists(expTrajectoriesSaveDirectory):
             os.makedirs(expTrajectoriesSaveDirectory)
 
         generateExpTrajectorySavePath = GetSavePath(expTrajectoriesSaveDirectory, trajectorySaveExtension, fixedParameters)
-        exoTrajectorySavePath = generateExpTrajectorySavePath({})
-        saveToPickle(expTrajList, exoTrajectorySavePath)
+        expTrajectorySavePath = generateExpTrajectorySavePath({})
+        saveToPickle(expTrajList, expTrajectorySavePath)
 
     # visualize
     if visualizeTraj:
 
-        pictureFolder = os.path.join(dataFolder, 'demo', modelSaveName,'noise','NoiseDistractor','damping={}_frictionloss={}_masterForce={}_distractorNoise={}'.format(damping,frictionloss,masterForce,distractorNoise))
+        pictureFolder = os.path.join(dataFolder, 'demo', modelSaveName,'normal','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
 
         if not os.path.exists(pictureFolder):
             os.makedirs(pictureFolder)
         entitiesColorList = [wolfColor] * numWolves + [sheepColor] * numSheeps + [masterColor] * numMasters + [distractorColor] * numDistractor
         render = Render(entitiesSizeList, entitiesColorList, numAgent,pictureFolder,saveImage, getPosFromAgentState)
-        trajToRender = np.concatenate(trajList)
+        trajToRender = np.concatenate(expTrajList)
+        print(np.size(trajToRender,1))
         render(trajToRender)
 
 
 def main():
+
     manipulatedVariables = OrderedDict()
-    manipulatedVariables['damping'] = [0.5]#[0.0, 1.0]
-    manipulatedVariables['frictionloss'] =[0.1]# [0.0, 0.2, 0.4]
-    manipulatedVariables['masterForce']=[0.5]#[0.0, 2.0]
-    manipulatedVariables['distractorNoise']=[0,3]
+    manipulatedVariables['damping'] = [0.0,0.5]#[0.0, 1.0]
+    manipulatedVariables['frictionloss'] =[1.0]# [0.0, 0.2, 0.4]
+    manipulatedVariables['masterForce']=[0.0, 1.0]#[0.0, 2.0]
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]
     for condition in conditions:
-        print(condition)
+        # print(condition)
         generateSingleCondition(condition)
         # try:
             # generateSingleCondition(condition)
