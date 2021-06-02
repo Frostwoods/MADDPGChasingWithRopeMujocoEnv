@@ -58,15 +58,23 @@ def main():
         numSheeps = int(condition['numSheeps'])
         numBlocks = 0
 
-        maxTimeStep = int(condition['maxTimeStep'])
-        sheepSpeedMultiplier = float(condition['sheepSpeedMultiplier'])
-        individualRewardWolf = float(condition['individualRewardWolf'])
-        costActionRatio = float(condition['costActionRatio'])
+        maxTimeStep = 75# int(condition['maxTimeStep'])
+        sheepSpeedMultiplier =1 #float(condition['sheepSpeedMultiplier'])
+        individualRewardWolf =0 #float(condition['individualRewardWolf'])
+        costActionRatio = 0#float(condition['costActionRatio'])
 
         saveAllmodels = 1
 
     print("maddpg: {} wolves, {} sheep, {} blocks, {} episodes with {} steps each eps, sheepSpeed: {}x, wolfIndividualReward: {}, save all models: {}".
           format(numWolves, numSheeps, numBlocks, maxEpisode, maxTimeStep, sheepSpeedMultiplier, individualRewardWolf, str(saveAllmodels)))
+
+
+    dataFolder = os.path.join(dirName, '..','..', 'data')
+    mainModelFolder = os.path.join(dataFolder,'model')
+    modelFolder = os.path.join(mainModelFolder, 'fakeNewton','{} wolves, {} sheep, {} blocks'.format(numWolves, numSheeps, numBlocks))
+
+    if not os.path.exists(modelFolder):
+        os.makedirs(modelFolder)
 
     numAgents = numWolves + numSheeps
     numEntities = numAgents + numBlocks
@@ -79,9 +87,9 @@ def main():
     blockSize = 0.2
     entitiesSizeList = [wolfSize] * numWolves + [sheepSize] * numSheeps + [blockSize] * numBlocks
 
-    wolfMaxSpeed = 1.0
+    wolfMaxSpeed = 1000
     blockMaxSpeed = None
-    sheepMaxSpeedOriginal = 1.3
+    sheepMaxSpeedOriginal = 1000
     sheepMaxSpeed = sheepMaxSpeedOriginal * sheepSpeedMultiplier
 
     entityMaxSpeedList = [wolfMaxSpeed] * numWolves + [sheepMaxSpeed] * numSheeps + [blockMaxSpeed] * numBlocks
@@ -103,14 +111,13 @@ def main():
     rewardFunc = lambda state, action, nextState: \
         list(rewardWolfWithActionCost(state, action, nextState)) + list(rewardSheep(state, action, nextState))
     
-    minDistanceForReborn = 5
+    minDistanceForReborn = 10
     # numPlayers = 2
     gridSize = 60
-    reset = ResetMultiAgentNewtonChasing(gridSize, numWolves, minDistanceForReborn)
-    reset = lambda:reset(numSheeps)
+    reset0 = ResetMultiAgentNewtonChasing(gridSize, numWolves, minDistanceForReborn)
+    reset = lambda :reset0(numSheeps)
     # reset = ResetMultiAgentChasing(numAgents, numBlocks)
-    observeOneAgent = lambda agentID: Observe(agentID, wolvesID, sheepsID, blocksID, getPosFromAgentState,
-                                              getVelFromAgentState)
+    observeOneAgent = lambda agentID: Observe(agentID, wolvesID, sheepsID, blocksID, getPosFromAgentState, getVelFromAgentState)
     observe = lambda state: [observeOneAgent(agentID)(state) for agentID in range(numAgents)]
     
     stayInBoundaryByReflectVelocity = StayInBoundaryByReflectVelocity( [0, gridSize - 1], [0, gridSize - 1])
@@ -168,8 +175,8 @@ def main():
     fileName = "maddpg{}wolves{}sheep{}blocks{}episodes{}stepSheepSpeed{}WolfActCost{}individ{}_agent".format(
         numWolves, numSheeps, numBlocks, maxEpisode, maxTimeStep, sheepSpeedMultiplier, costActionRatio, individualRewardWolf)
 
-    folderName = 'maddpg_10reward_full'
-    modelPath = os.path.join(dirName, '..', 'trainedModels', folderName, fileName)
+    # folderName = 'maddpg_10reward_full'
+    modelPath = os.path.join(modelFolder, fileName)
     saveModels = [SaveModel(modelSaveRate, saveVariables, getTrainedModel, modelPath + str(i), saveAllmodels) for i, getTrainedModel in enumerate(getModelList)]
 
     maddpg = RunAlgorithm(runEpisode, maxEpisode, saveModels, numAgents)

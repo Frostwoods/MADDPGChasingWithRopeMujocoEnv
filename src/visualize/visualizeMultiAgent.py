@@ -391,7 +391,7 @@ class Render:
 
             results = []
             # update bounds to center around agent
-            cam_range = 1
+            cam_range = 60
             pos = np.zeros(2)
             self.viewer.set_bounds(pos[0] - cam_range, pos[0] + cam_range, pos[1] - cam_range, pos[1] + cam_range)
             # update geometry positions

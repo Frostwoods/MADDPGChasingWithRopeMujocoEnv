@@ -259,7 +259,7 @@ def main():
 
     manipulatedVariables = OrderedDict()
     manipulatedVariables['damping'] = [0.0,0.5]#[0.0, 1.0]
-    manipulatedVariables['frictionloss'] =[1.0]# [0.0, 0.2, 0.4]
+    manipulatedVariables['frictionloss'] =[0.0]# [0.0, 0.2, 0.4]
     manipulatedVariables['masterForce']=[0.0, 1.0]#[0.0, 2.0]
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]

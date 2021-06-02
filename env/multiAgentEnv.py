@@ -265,7 +265,7 @@ class ApplyEnvironForce:
 
     def __call__(self, pForce, state):
         self.numEntities = len(state)
-        print(len(state))
+        # print(len(state))
         for entity1ID in range(self.numEntities):
             for entity2ID in range(self.numEntities):
                 if entity2ID <= entity1ID: continue
