@@ -95,8 +95,8 @@ def generateSingleCondition(condition):
     masterSize = 0.05
     distractorSize = 0.05
     entitiesSizeList = [wolfSize] * numWolves + [sheepSize] * numSheeps + [masterSize] * numMasters + [distractorSize] * numDistractor
-
-
+    numAgentForDarw =  4
+    entitiesSizeListForDarw = [wolfSize] * numWolves + [sheepSize] * numSheeps + [masterSize] * numMasters + [distractorSize] * 1
     entitiesMovableList = [True] * numAgent + [False] * numMasters
 
     killZone = 0.01
@@ -252,7 +252,7 @@ def generateSingleCondition(condition):
         if not os.path.exists(pictureFolder):
             os.makedirs(pictureFolder)
         entitiesColorList = [wolfColor] * numWolves + [sheepColor] * numSheeps + [masterColor] * numMasters + [distractorColor] * numDistractor
-        render = Render(entitiesSizeList, entitiesColorList, numAgent,pictureFolder,saveImage, getPosFromAgentState)
+        render = Render(entitiesSizeListForDarw, entitiesColorList, numAgent,pictureFolder,saveImage, getPosFromAgentState)
         trajToRender = np.concatenate(trajList)
         render(trajToRender)
 

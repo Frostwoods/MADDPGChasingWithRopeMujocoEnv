@@ -84,22 +84,25 @@ def generateSingleCondition(condition):
         saveTraj=True
         saveImage=True
         visualizeMujoco=False
-        visualizeTraj = True
+        visualizeTraj = False
         makeVideo=False
 
-    evalNum = 20
+    evalNum = 50
     maxRunningStepsToSample = 100
-    modelSaveName = 'expTrajMADDPGMujocoEnvWithRopeAdd2Distractors'
+    modelSaveName = 'expTrajMADDPGMujocoEnvWithRopeAdd2DistractorsWithRopePunish'
+    # modelSaveName = 'expTrajMADDPGMujocoEnvWithRopeAdd2Distractors'
     print("maddpg: , saveTraj: {}, visualize: {},damping; {},frictionloss: {}".format( str(saveTraj), str(visualizeMujoco),damping,frictionloss))
     wolvesID = [0]
     sheepsID = [1]
     masterID = [2]
     distractorID = [3,4]
-    hideIdList = sheepsID + distractorID
+    hideIdList =  distractorID + sheepsID
     numAgent=5
 
 
     numAgent = numWolves + numSheeps + numMasters +  numDistractor
+    numAgentForDarw =  4
+
     wolvesID = [0]
     sheepsID = [1]
     masterID = [2]
@@ -110,7 +113,7 @@ def generateSingleCondition(condition):
     masterSize = 0.05
     distractorSize = 0.05
     entitiesSizeList = [wolfSize] * numWolves + [sheepSize] * numSheeps + [masterSize] * numMasters + [distractorSize] * numDistractor
-
+    entitiesSizeListForDarw = [wolfSize] * numWolves + [sheepSize] * numSheeps + [masterSize] * numMasters + [distractorSize] * 1
 
     entitiesMovableList = [True] * numAgent + [False] * numMasters
 
@@ -229,6 +232,8 @@ def generateSingleCondition(condition):
 
     actOneStepOneModel = ActOneStep(actByPolicyTrainNoisy)
     policy = lambda allAgentsStates: [actOneStepOneModel(model, observe(allAgentsStates)) for model in modelsList]
+    # offsetFrameList=[0] + [offsetFrame]*3
+    offsetFrameList=[offsetFrame,offsetFrame,0,offsetFrame]
     for hideId in hideIdList:
         agentList = list(range(numAgent))
         del(agentList[hideId])
@@ -243,15 +248,19 @@ def generateSingleCondition(condition):
         for i,traj in enumerate(expTrajList):
 
             newTraj = [[state[agentId] for agentId in agentList]  for state in traj]
-            offsetTraj =  [[newTraj[index][0],newTraj[index+offsetFrame][1],newTraj[index+offsetFrame][2],newTraj[index+offsetFrame][3]]    for index in range(len(newTraj)-offsetFrame)]
+            if offsetFrame < 0:
+                offsetTraj =  [[newTraj[index+offsetF][i] for i,offsetF in enumerate(offsetFrameList)]    for index in range(-offsetFrame,len(newTraj))]
+            else:
+                offsetTraj =  [[newTraj[index+offsetF][i] for i,offsetF in enumerate(offsetFrameList)]    for index in range(len(newTraj)-offsetFrame)]
+            # offsetTraj =  [[newTraj[index][0],newTraj[index+offsetFrame][1],newTraj[index+offsetFrame][2],newTraj[index+offsetFrame][3]]    for index in range(len(newTraj)-offsetFrame)]
             newTrajList.append(offsetTraj)
-        
-        # print('save',saveTraj)
+
+        print('save',newTrajList[0][0])
         # saveTraj
         if saveTraj:
             # trajFileName = "maddpg{}wolves{}sheep{}blocks{}eps{}step{}Traj".format(numWolves, numSheeps, numMasters, maxEpisode, maxTimeStep)
 
-            trajectoriesSaveDirectory= os.path.join(dataFolder,'trajectory',modelSaveName,'noise')
+            trajectoriesSaveDirectory= os.path.join(dataFolder,'trajectory',modelSaveName,'noiseOffsetMasterForSelect')
             if not os.path.exists(trajectoriesSaveDirectory):
                 os.makedirs(trajectoriesSaveDirectory)
 
@@ -261,7 +270,7 @@ def generateSingleCondition(condition):
             trajectorySavePath = generateTrajectorySavePath(condition)
             saveToPickle(trajList, trajectorySavePath)
 
-            expTrajectoriesSaveDirectory = os.path.join(dataFolder, 'expTrajectoryHideOneAgent', modelSaveName,'noise')
+            expTrajectoriesSaveDirectory = os.path.join(dataFolder, 'Exptrajectory', modelSaveName,'noiseOffsetMasterForSelect')
             if not os.path.exists(expTrajectoriesSaveDirectory):
                 os.makedirs(expTrajectoriesSaveDirectory)
 
@@ -270,26 +279,27 @@ def generateSingleCondition(condition):
             saveToPickle(newTrajList, expTrajectorySavePath)
 
         # visualize
-        # if visualizeTraj:
+        if visualizeTraj:
 
-        #     pictureFolder = os.path.join(dataFolder, 'demo', modelSaveName,'normal','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
+            # pictureFolder = os.path.join(dataFolder, 'demo', modelSaveName,'normal','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
+            pictureFolder = os.path.join(dataFolder, 'demo', modelSaveName,'normal','damping={}_frictionloss={}_masterForce={}_offset={}_hideId={}'.format(damping,frictionloss,masterForce,offset,hideId))
 
-        #     if not os.path.exists(pictureFolder):
-        #         os.makedirs(pictureFolder)
-        #     entitiesColorList = [wolfColor] * numWolves + [sheepColor] * numSheeps + [masterColor] * numMasters + [distractorColor] * numDistractor
-        #     render = Render(entitiesSizeList, entitiesColorList, numAgent,pictureFolder,saveImage, getPosFromAgentState)
-        #     trajToRender = np.concatenate(expTrajList)
-        #     print(np.size(trajToRender,0))
-        #     render(trajToRender)
+            if not os.path.exists(pictureFolder):
+                os.makedirs(pictureFolder)
+            entitiesColorList = [wolfColor] * numWolves + [sheepColor] * numSheeps + [masterColor] * numMasters + [distractorColor] * numDistractor
+            render = Render(entitiesSizeListForDarw, entitiesColorList, numAgentForDarw,pictureFolder,saveImage, getPosFromAgentState)
+            trajToRender = np.concatenate(newTrajList)
+            print(np.size(trajToRender,0))
+            render(trajToRender)
 
 
 def main():
 
     manipulatedVariables = OrderedDict()
-    manipulatedVariables['damping'] = [0.0,0.5]#[0.0, 1.0]
+    manipulatedVariables['damping'] = [0.5]#[0.0, 1.0]
     manipulatedVariables['frictionloss'] =[1.0]# [0.0, 0.2, 0.4]
-    manipulatedVariables['masterForce']=[0.0, 1.0]#[0.0, 2.0]
-    manipulatedVariables['offset'] = [0.0, 1.0]
+    manipulatedVariables['masterForce']=[0.0]#[0.0, 2.0]
+    manipulatedVariables['offset'] = [-2,-1,-0.5, 0 ,0.5,1,2]
     manipulatedVariables['distractorNoise']=[3.0]
 
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])

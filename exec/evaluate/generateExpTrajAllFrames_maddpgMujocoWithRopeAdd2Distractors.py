@@ -87,6 +87,7 @@ def generateSingleCondition(condition):
 
 
     numAgent = numWolves + numSheeps + numMasters +  numDistractor
+
     wolvesID = [0]
     sheepsID = [1]
     masterID = [2]
@@ -249,7 +250,7 @@ def generateSingleCondition(condition):
         if not os.path.exists(pictureFolder):
             os.makedirs(pictureFolder)
         entitiesColorList = [wolfColor] * numWolves + [sheepColor] * numSheeps + [masterColor] * numMasters + [distractorColor] * numDistractor
-        render = Render(entitiesSizeList, entitiesColorList, numAgent,pictureFolder,saveImage, getPosFromAgentState)
+        render = Render(entitiesSizeList, entitiesColorList, numAgentForDarw,pictureFolder,saveImage, getPosFromAgentState)
         trajToRender = np.concatenate(expTrajList)
         print(np.size(trajToRender,1))
         render(trajToRender)
