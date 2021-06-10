@@ -1,17 +1,9 @@
-import os
-import sys
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-os.environ['KMP_DUPLICATE_LIB_OK']='True'
-dirName = os.path.dirname(__file__)
+import os import sys os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ['KMP_DUPLICATE_LIB_OK']='True' dirName = os.path.dirname(__file__)
 sys.path.append(os.path.join(dirName, '..'))
-sys.path.append(os.path.join(dirName, '..', '..'))
-import logging
-logging.getLogger('tensorflow').setLevel(logging.ERROR)
-import numpy as np
-import json
-import xmltodict
-import mujoco_py as mujoco
-import math
+sys.path.append(os.path.join(dirName, '..', '..')) import logging
+logging.getLogger('tensorflow').setLevel(logging.ERROR) import numpy as np
+import json import xmltodict import mujoco_py as mujoco import math
 
 from src.maddpg.trainer.myMADDPG import BuildMADDPGModels, TrainCritic, TrainActor, TrainCriticBySASR, \
     TrainActorFromSA, TrainMADDPGModelsWithBuffer, ActOneStep, actByPolicyTrainNoisy, actByPolicyTargetNoisyForNextState

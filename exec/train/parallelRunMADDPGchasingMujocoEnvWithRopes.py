@@ -42,7 +42,7 @@ def main():
     startTime = time.time()
     # fileName = 'runMADDPGchasingMujocoEnvWithRopes.py'
     # fileName = 'runMADDPGchasingMujocoEnvWithRopesAdd2DistractorsWithRopePunish.py'
-    fileName = 'runMADDPGchasingNewtonEnv.py'
+    fileName = 'runMADDPGchasingOldNewtonEnv.py'
     numSample = None
     numCpuToUse = 27#int(0.8 * os.cpu_count())
     excuteCodeParallel = ExcuteCodeOnConditionsParallel(fileName, numSample, numCpuToUse)

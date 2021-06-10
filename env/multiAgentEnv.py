@@ -93,16 +93,22 @@ class PunishForOutOfBound:
     def __call__(self, agentPos):
         punishment = 0
         for i in range(self.physicsDim):
-            x = abs(agentPos[i])
+            x = abs(agentPos[i]-30)
             punishment += self.bound(x)
         return punishment
 
+
     def bound(self, x):
         if x < 0.9:
-            return 0
-        if x < 1.0:
-            return (x - 0.9) * 10
+            return 0        
+        if x < 1.0:            
+            return (x - 0.9) * 10        
         return min(np.exp(2 * x - 2), 10)
+        # if x < 27:
+        #     return 0
+        # if x < 30:
+        #     return (x - 27) * 10 / 30
+        # return min(np.exp(2 * x - 60), 10)
 
 
 class RewardSheep:
@@ -138,13 +144,31 @@ def samplePosition(gridSize,positionDimension):
     randomPos = lambda: np.random.uniform(0, gridSize - 1, positionDimension)
     position = list(randomPos())
     return position
+class ResetMultiAgentChasingWithVariousSheep:
+    def __init__(self, numWolves, numBlocks):
+        self.positionDimension = 2
+        self.numWolves = numWolves
+        self.numBlocks = numBlocks
+
+    def __call__(self,numSheep):
+        self.numTotalAgents = self.numWolves + numSheep
+        getAgentRandomPos = lambda: np.random.uniform(-1, +1, self.positionDimension)
+        getAgentRandomVel = lambda: np.zeros(self.positionDimension)
+        agentsState = [list(getAgentRandomPos()) + list(getAgentRandomVel()) for ID in range(self.numTotalAgents)]
+
+        getBlockRandomPos = lambda: np.random.uniform(-0.9, +0.9, self.positionDimension)
+        getBlockSpeed = lambda: np.zeros(self.positionDimension)
+
+        blocksState = [list(getBlockRandomPos()) + list(getBlockSpeed()) for blockID in range(self.numBlocks)]
+        state = np.array(agentsState + blocksState)
+        return state    
 class ResetMultiAgentChasing:
     def __init__(self, numTotalAgents, numBlocks):
         self.positionDimension = 2
         self.numTotalAgents = numTotalAgents
         self.numBlocks = numBlocks
 
-    def __call__(self):
+    def __call__(self,nu):
         getAgentRandomPos = lambda: np.random.uniform(-1, +1, self.positionDimension)
         getAgentRandomVel = lambda: np.zeros(self.positionDimension)
         agentsState = [list(getAgentRandomPos()) + list(getAgentRandomVel()) for ID in range(self.numTotalAgents)]

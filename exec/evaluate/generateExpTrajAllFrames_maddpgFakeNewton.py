@@ -110,8 +110,8 @@ def generateSingleCondition(condition):
     sheepsID = list(range(numWolves, numAgent))
     blocksID = list(range(numAgent, numEntities))
 
-    wolfSize = 0.75
-    sheepSize = 0.75
+    wolfSize = 1.5
+    sheepSize = 1.5
     blockSize = 0.2
     entitiesSizeList = [wolfSize] * numWolves + [sheepSize] * numSheeps + [blockSize] * numBlocks
 
@@ -184,15 +184,19 @@ def generateSingleCondition(condition):
     buildMADDPGModels = BuildMADDPGModels(actionDim, numAgent, obsShape)
     modelsList = [buildMADDPGModels(layerWidth, agentID) for agentID in range(numAgent)]
 
-    dataFolder = os.path.join(dirName, '..','..', 'data','fakeNewtonEnv')
-    mainModelFolder = os.path.join(dataFolder,'model','fakeNewton')
+    # dataFolder = os.path.join(dirName, '..','..', 'data','fakeNewtonEnv')
+    # mainModelFolder = os.path.join(dataFolder,'model','fakeNewton')
     # modelFolder = os.path.join(mainModelFolder, modelSaveName,'damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
-    modelFolder = os.path.join(mainModelFolder,'{} wolves, {} sheep, {} blocks'.format(numWolves, numSheeps, numBlocks))
-
+    # modelFolder = os.path.join(mainModelFolder,'{} wolves, {} sheep, {} blocks'.format(numWolves, numSheeps, numBlocks))
+    dataFolder = os.path.join(dirName, '..','..', 'data')
+    mainModelFolder = os.path.join(dataFolder,'model')
+    modelFolder = os.path.join(mainModelFolder, 'fakeNewton','{} wolves, {} sheep, {} blocks'.format(numWolves, numSheeps, numBlocks))
     # fileName = "maddpg{}episodes{}step_agent".format(maxEpisode, maxTimeStep)
-    fileName = "maddpg{}wolves{}sheep{}blocks{}episodes{}stepSheepSpeed{}WolfActCost{}individ{}_agent".format(
-        numWolves, numSheeps, numBlocks, maxEpisode, maxTimeStep, sheepSpeedMultiplier, costActionRatio, individualRewardWolf)
+    # fileName = "maddpg{}wolves{}sheep{}blocks{}episodes{}stepSheepSpeed{}WolfActCost{}individ{}_agent".format(numWolves, numSheeps, numBlocks, maxEpisode, maxTimeStep, sheepSpeedMultiplier, costActionRatio, individualRewardWolf)
+# 
 
+    fileName = "maddpg{}wolves{}sheep{}blocks{}episodes{}individ{}_agent".format(
+        numWolves, numSheeps, numBlocks, maxEpisode, maxTimeStep,   individualRewardWolf)
     modelPaths = [os.path.join(modelFolder, fileName + str(i) +str(evaluateEpisode)+'eps') for i in range(numAgent)]
     print(modelPaths)
     [restoreVariables(model, path) for model, path in zip(modelsList, modelPaths)]
@@ -235,7 +239,7 @@ def generateSingleCondition(condition):
     # visualize
     if visualizeTraj:
 
-        pictureFolder = os.path.join(dataFolder, 'demo', 'normal','numWolves={}_numSheeps={}_numBlocks={}'.format(numWolves,numSheeps,numBlocks))
+        pictureFolder = os.path.join(dataFolder, 'demo', 'fakeNewton','numWolves={}_numSheeps={}_numBlocks={}'.format(numWolves,numSheeps,numBlocks))
 
         if not os.path.exists(pictureFolder):
             os.makedirs(pictureFolder)
@@ -250,7 +254,7 @@ def main():
 
     manipulatedVariables = OrderedDict()
     manipulatedVariables['numWolves'] = [2]#[0.0, 1.0]
-    manipulatedVariables['numSheeps'] =[2]# [0.0, 0.2, 0.4]
+    manipulatedVariables['numSheeps'] =[1]# [0.0, 0.2, 0.4]
     # manipulatedVariables['masterForce']=[0.0, 1.0]#[0.0, 2.0]
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]

@@ -26,7 +26,7 @@ def makeVideo(condition):
         # distractorNoise = float(condition['distractorNoise'])
         # offsetFrame = int(condition['offsetFrame'])
         numTrajToSample=3
-        maxRunningStepsToSample=1001
+        maxRunningStepsToSample=100
 
 
     dataFolder = os.path.join(dirName, '..','..', 'data')

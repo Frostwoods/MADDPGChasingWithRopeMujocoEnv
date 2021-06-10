@@ -19,7 +19,7 @@ from src.RLframework.RLrun_MultiAgent import UpdateParameters, SampleOneStep, Sa
     RunTimeStep, RunEpisode, RunAlgorithm, getBuffer, SaveModel, StartLearn
 from src.functionTools.loadSaveModel import saveVariables
 # from env.multiAgentEnv import GetActionCost,RewardSheep, RewardWolf, Observe, IsCollision, getPosFromAgentState, getVelFromAgentState,PunishForOutOfBound,ReshapeAction, TransitionFunctionWithoutXPos, ResetMultiAgentNewtonChasing
-from env.multiAgentEnv import GetActionCost,RewardSheep, RewardWolf, Observe, IsCollision, getPosFromAgentState, getVelFromAgentState,PunishForOutOfBound, StayInBoundaryByReflectVelocity,ResetMultiAgentNewtonChasing,TransitMultiAgentChasingForExp, ReshapeAction, GetCollisionForce, ApplyActionForce, ApplyEnvironForce, IntegrateState, getPosFromAgentState,getVelFromAgentState
+from env.multiAgentEnv import GetActionCost,RewardSheep, RewardWolf, Observe, IsCollision, getPosFromAgentState, getVelFromAgentState,PunishForOutOfBound, StayInBoundaryByReflectVelocity,ResetMultiAgentNewtonChasing,TransitMultiAgentChasingForExp, ReshapeAction, GetCollisionForce, ApplyActionForce, ApplyEnvironForce, IntegrateState, getPosFromAgentState,getVelFromAgentState,ResetMultiAgentChasingWithVariousSheep
 from src.functionTools.editEnvXml import transferNumberListToStr,MakePropertyList,changeJointProperty
 
 
@@ -71,7 +71,7 @@ def main():
 
     dataFolder = os.path.join(dirName, '..','..', 'data')
     mainModelFolder = os.path.join(dataFolder,'model')
-    modelFolder = os.path.join(mainModelFolder, 'originEnv','indvidulReward={}'.{individualRewardWolf},'{} wolves, {} sheep, {} blocks'.format(numWolves, numSheeps, numBlocks))
+    modelFolder = os.path.join(mainModelFolder, 'originEnv','indvidulReward={}'.format(individualRewardWolf),'{} wolves, {} sheep, {} blocks'.format(numWolves, numSheeps, numBlocks))
 
     if not os.path.exists(modelFolder):
         os.makedirs(modelFolder)
@@ -87,7 +87,7 @@ def main():
     blockSize = 1.5
     entitiesSizeList = [wolfSize] * numWolves + [sheepSize] * numSheeps + [blockSize] * numBlocks
 
-    wolfMaxSpeed = 1000
+    wolfMaxSpeed = 1000 #!!
     blockMaxSpeed = None
     sheepMaxSpeedOriginal = 1000
     sheepMaxSpeed = sheepMaxSpeedOriginal * sheepSpeedMultiplier
@@ -114,13 +114,15 @@ def main():
     minDistanceForReborn = 10
     # numPlayers = 2
     gridSize = 60
-    reset0 = ResetMultiAgentNewtonChasing(gridSize, numWolves, minDistanceForReborn)
+    # reset0 = ResetMultiAgentNewtonChasing(gridSize, numWolves, minDistanceForReborn)
+    reset0 =  ResetMultiAgentChasingWithVariousSheep(numWolves, numBlocks)
     reset = lambda :reset0(numSheeps)
     # reset = ResetMultiAgentChasing(numAgents, numBlocks)
     observeOneAgent = lambda agentID: Observe(agentID, wolvesID, sheepsID, blocksID, getPosFromAgentState, getVelFromAgentState)
     observe = lambda state: [observeOneAgent(agentID)(state) for agentID in range(numAgents)]
     
-    stayInBoundaryByReflectVelocity = StayInBoundaryByReflectVelocity( [0, gridSize - 1], [0, gridSize - 1])
+    # stayInBoundaryByReflectVelocity = StayInBoundaryByReflectVelocity( [0, gridSize - 1], [0, gridSize - 1])
+    stayInBoundaryByReflectVelocity = StayInBoundaryByReflectVelocity( [-1,1], [-1, 1])
     def checkBoudary(agentState):
         newState = stayInBoundaryByReflectVelocity(getPosFromAgentState(agentState),getVelFromAgentState(agentState))
         return newState
