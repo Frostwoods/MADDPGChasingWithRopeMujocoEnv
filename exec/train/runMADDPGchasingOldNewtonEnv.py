@@ -24,7 +24,7 @@ from src.functionTools.editEnvXml import transferNumberListToStr,MakePropertyLis
 
 
 # fixed training parameter,
-maxEpisode = 60000
+maxEpisode = 120000
 learningRateActor = 0.01#
 learningRateCritic = 0.01#
 gamma = 0.95 #
@@ -60,7 +60,7 @@ def main():
 
         maxTimeStep = 75# int(condition['maxTimeStep'])
         sheepSpeedMultiplier =1 #float(condition['sheepSpeedMultiplier'])
-        individualRewardWolf =0 #float(condition['individualRewardWolf'])
+        individualRewardWolf =1 #float(condition['individualRewardWolf'])
         costActionRatio = 0#float(condition['costActionRatio'])
 
         saveAllmodels = 1
