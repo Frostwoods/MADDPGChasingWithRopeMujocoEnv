@@ -93,7 +93,7 @@ class PunishForOutOfBound:
     def __call__(self, agentPos):
         punishment = 0
         for i in range(self.physicsDim):
-            x = abs(agentPos[i]-30)
+            x = abs(agentPos[i])
             punishment += self.bound(x)
         return punishment
 

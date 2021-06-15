@@ -71,7 +71,7 @@ def main():
 
     dataFolder = os.path.join(dirName, '..','..', 'data')
     mainModelFolder = os.path.join(dataFolder,'model')
-    modelFolder = os.path.join(mainModelFolder, 'originEnv','indvidulReward={}'.format(individualRewardWolf),'{} wolves, {} sheep, {} blocks'.format(numWolves, numSheeps, numBlocks))
+    modelFolder = os.path.join(mainModelFolder, 'originEnv6.14','indvidulReward={}'.format(individualRewardWolf),'{} wolves, {} sheep, {} blocks'.format(numWolves, numSheeps, numBlocks))
 
     if not os.path.exists(modelFolder):
         os.makedirs(modelFolder)
