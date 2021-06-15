@@ -356,6 +356,7 @@ def main():
     manipulatedVariables['damping'] = [0,1.0]#[0.0, 1.0]
     manipulatedVariables['frictionloss'] =[0,0.2]# [0.0, 0.2, 0.4]
     manipulatedVariables['masterForce']=[0,1.0]#[0.0, 2.0]
+
     from matplotlib import pyplot as plt
     fig = plt.figure()
     numRows = len(manipulatedVariables['damping'])

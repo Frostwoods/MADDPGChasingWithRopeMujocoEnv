@@ -67,7 +67,9 @@ def generateSingleCondition(condition):
         offset = float(condition['offset'])
 
         dt = 0.02
-        offsetFrame = int (offset/dt)
+        # offsetFrame = int (offset/dt)
+
+        offsetFrame = int (offset*40)
 
         maxEpisode = 120000
         evaluateEpisode = 120000
@@ -260,7 +262,7 @@ def generateSingleCondition(condition):
         if saveTraj:
             # trajFileName = "maddpg{}wolves{}sheep{}blocks{}eps{}step{}Traj".format(numWolves, numSheeps, numMasters, maxEpisode, maxTimeStep)
 
-            trajectoriesSaveDirectory= os.path.join(dataFolder,'trajectory',modelSaveName,'noiseOffsetMasterForSelect')
+            trajectoriesSaveDirectory= os.path.join(dataFolder,'trajectory',modelSaveName,'noiseOffsetMasterForSelectFps40')
             if not os.path.exists(trajectoriesSaveDirectory):
                 os.makedirs(trajectoriesSaveDirectory)
 
@@ -270,7 +272,7 @@ def generateSingleCondition(condition):
             trajectorySavePath = generateTrajectorySavePath(condition)
             saveToPickle(trajList, trajectorySavePath)
 
-            expTrajectoriesSaveDirectory = os.path.join(dataFolder, 'Exptrajectory', modelSaveName,'noiseOffsetMasterForSelect')
+            expTrajectoriesSaveDirectory = os.path.join(dataFolder, 'Exptrajectory', modelSaveName,'noiseOffsetMasterForSelectFps40')
             if not os.path.exists(expTrajectoriesSaveDirectory):
                 os.makedirs(expTrajectoriesSaveDirectory)
 
@@ -296,10 +298,10 @@ def generateSingleCondition(condition):
 def main():
 
     manipulatedVariables = OrderedDict()
-    manipulatedVariables['damping'] = [0.5]#[0.0, 1.0]
-    manipulatedVariables['frictionloss'] =[1.0]# [0.0, 0.2, 0.4]
+    manipulatedVariables['damping'] = [0.0,0.5]#[0.0, 1.0]
+    manipulatedVariables['frictionloss'] =[0.0,1.0]# [0.0, 0.2, 0.4]
     manipulatedVariables['masterForce']=[0.0]#[0.0, 2.0]
-    manipulatedVariables['offset'] = [-2,-1,-0.5, 0 ,0.5,1,2]
+    manipulatedVariables['offset'] = [-0.5,0.5,1.0]
     manipulatedVariables['distractorNoise']=[3.0]
 
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
