@@ -63,7 +63,7 @@ def generateSingleCondition(condition):
         damping = float(condition['damping'])
         frictionloss = float(condition['frictionloss'])
         masterForce = float(condition['masterForce'])
-        distractorNoise = float(condition['distractorNoise'])
+        killZone = float(condition['killZone'])
         offset = float(condition['offset'])
 
         dt = 0.02
