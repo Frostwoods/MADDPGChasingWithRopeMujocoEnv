@@ -62,6 +62,10 @@ def main():
         damping = float(condition['damping'])
         frictionloss = float(condition['frictionloss'])
         masterForce = float(condition['masterForce'])
+        killZoneRatio = float(condition['killZone'])
+        ropePunishWeight = float(condition['ropePunishWeight'])
+        ropeLength = float(condition['ropeLength'])
+        masterMass = float(condition['masterMass'])
 
         maxTimeStep = 25
         visualize=False
@@ -72,7 +76,7 @@ def main():
 
     dataFolder = os.path.join(dirName, '..','..', 'data')
     mainModelFolder = os.path.join(dataFolder,'model')
-    modelFolder = os.path.join(mainModelFolder, 'expTrajMADDPGMujocoEnvWithRopeAdd2DistractorsWithRopePunish','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
+    modelFolder = os.path.join(mainModelFolder, 'expTrajMADDPGMujocoEnvJune','damping={}_frictionloss={}_killZoneRatio{}_masterForce={}_masterMass={}_ropeLength={}_ropePunishWeight={}'.format(damping,frictionloss,killZoneRatio,masterForce,masterMass,ropeLength,ropePunishWeight))
 
     if not os.path.exists(modelFolder):
         os.makedirs(modelFolder)
@@ -96,16 +100,16 @@ def main():
     entitiesSizeList = [wolfSize] * numWolves + [sheepSize] * numSheeps + [masterSize] * numMasters + [distractorSize] * numDistractor + [knotSize] * numKnots
 
 
-    killZone = wolfSize*3
+    killZone = wolfSize * killZoneRatio
+
     isCollision = IsCollision(getPosFromAgentState, killZone)
     punishForOutOfBound = PunishForOutOfBound()
     zeroPunishForOutOfBound = lambda agentPos:0
 
     rewardSheep = RewardSheep(wolvesID, sheepsID, entitiesSizeList, getPosFromAgentState, isCollision, punishForOutOfBound)
     punishRope = RewardSheep(ropePartIndex, sheepsID, entitiesSizeList, getPosFromAgentState, isCollision, zeroPunishForOutOfBound)
-    ropeWeight=0.1
-
-    rewardSheepWithRopePunish = lambda state, action, nextState:[sheepRewrad  + ropePunish * ropeWeight for sheepRewrad,ropePunish in zip(rewardSheep( state, action, nextState),punishRope( state, action, nextState))]
+#
+    rewardSheepWithRopePunish = lambda state, action, nextState:[sheepRewrad  + ropePunish * ropePunishWeight for sheepRewrad,ropePunish in zip(rewardSheep( state, action, nextState),punishRope( state, action, nextState))]
 
     rewardWolf = RewardWolf(wolvesID, sheepsID, entitiesSizeList, isCollision)
 
@@ -118,7 +122,8 @@ def main():
     rewardFunc = lambda state, action, nextState: \
         list(rewardWolf(state, action, nextState)) + list(rewardSheepWithRopePunish(state, action, nextState)) + list(rewardMaster(state, action, nextState)) + list(rewardDistractor1(state, action, nextState)) + list(rewardDistractor2(state, action, nextState))
 
-    physicsDynamicsPath=os.path.join(dirName,'..','..','env','xml','leased2Distractor.xml')
+    physicsDynamicsPath=os.path.join(dirName,'..','..','env','xml','leased2Distractor_masterMass={}_ropeLength={}.xml'.format(masterMass,ropeLength))
+    print('loadEnv:{}'.format(physicsDynamicsPath))
     with open(physicsDynamicsPath) as f:
         xml_string = f.read()
 
@@ -154,7 +159,7 @@ def main():
     qVelInitNoise = 0
     tiedAgentId = [0, 2]
     ropePartIndex = list(range(numAgent, numAgent+numKnots))
-    maxRopePartLength = 0.06
+    maxRopePartLength = ropeLength
     reset = ResetUniformWithoutXPosForLeashed(physicsSimulation, qPosInit, qVelInit, numAgent, tiedAgentId,ropePartIndex, maxRopePartLength, qPosInitNoise, qVelInitNoise)
 
     numSimulationFrames=10
