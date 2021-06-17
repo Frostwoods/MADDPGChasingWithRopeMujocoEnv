@@ -63,9 +63,11 @@ def generateSingleCondition(condition):
         damping = float(condition['damping'])
         frictionloss = float(condition['frictionloss'])
         masterForce = float(condition['masterForce'])
-        killZone = float(condition['killZone'])
         offset = float(condition['offset'])
-
+        killZoneRatio = float(condition['killZone'])
+        ropePunishWeight = float(condition['ropePunishWeight'])
+        ropeLength = float(condition['ropeLength'])
+        masterMass = float(condition['masterMass'])
         dt = 0.02
         offsetFrame = int (offset/dt)
 
@@ -89,7 +91,7 @@ def generateSingleCondition(condition):
 
     evalNum = 50
     maxRunningStepsToSample = 100
-    modelSaveName = 'expTrajMADDPGMujocoEnvWithRopeAdd2DistractorsWithRopePunish'
+    modelSaveName = 'expTrajMADDPGMujocoEnvJune'
     # modelSaveName = 'expTrajMADDPGMujocoEnvWithRopeAdd2Distractors'
     print("maddpg: , saveTraj: {}, visualize: {},damping; {},frictionloss: {}".format( str(saveTraj), str(visualizeMujoco),damping,frictionloss))
     wolvesID = [0]
@@ -117,7 +119,7 @@ def generateSingleCondition(condition):
 
     entitiesMovableList = [True] * numAgent + [False] * numMasters
 
-    killZone = 0.01
+    killZone = wolfSize * killZoneRatio
     isCollision = IsCollision(getPosFromAgentState, killZone)
     punishForOutOfBound = PunishForOutOfBound()
     rewardSheep = RewardSheep(wolvesID, sheepsID, entitiesSizeList, getPosFromAgentState, isCollision, punishForOutOfBound)
@@ -128,7 +130,8 @@ def generateSingleCondition(condition):
         list(rewardWolf(state, action, nextState)) + list(rewardSheep(state, action, nextState))\
         + list(rewardMaster(state, action, nextState) )+ list(rewardDistractor(state, action, nextState))
 
-    physicsDynamicsPath=os.path.join(dirName,'..','..','env','xml','leased2Distractor.xml')
+    physicsDynamicsPath=os.path.join(dirName,'..','..','env','xml','leased2Distractor_masterMass={}_ropeLength={}.xml'.format(masterMass,ropeLength))
+    print('loadEnv:{}'.format(physicsDynamicsPath))
     with open(physicsDynamicsPath) as f:
         xml_string = f.read()
 
@@ -222,8 +225,7 @@ def generateSingleCondition(condition):
 
     dataFolder = os.path.join(dirName, '..','..', 'data')
     mainModelFolder = os.path.join(dataFolder,'model')
-    modelFolder = os.path.join(mainModelFolder, modelSaveName,'damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
-
+    modelFolder = os.path.join(mainModelFolder, 'modelSaveName','damping={}_frictionloss={}_killZoneRatio{}_masterForce={}_masterMass={}_ropeLength={}_ropePunishWeight={}'.format(damping,frictionloss,killZoneRatio,masterForce,masterMass,ropeLength,ropePunishWeight))
     fileName = "maddpg{}episodes{}step_agent".format(maxEpisode, maxTimeStep)
 
     modelPaths = [os.path.join(modelFolder,  fileName + str(i) +str(evaluateEpisode)+'eps') for i in range(numAgent)]
@@ -280,7 +282,7 @@ def generateSingleCondition(condition):
         if visualizeTraj:
 
             # pictureFolder = os.path.join(dataFolder, 'demo', modelSaveName,'normal','damping={}_frictionloss={}_masterForce={}'.format(damping,frictionloss,masterForce))
-            pictureFolder = os.path.join(dataFolder, 'demo', modelSaveName,'normal','damping={}_frictionloss={}_masterForce={}_offset={}_hideId={}'.format(damping,frictionloss,masterForce,offset,hideId))
+            pictureFolder = os.path.join(dataFolder, 'demo', modelSaveName,'normal','damping={}_frictionloss={}_killZoneRatio{}_masterForce={}_masterMass={}_ropeLength={}_ropePunishWeight={}_offset={}_hideId={}'.format(damping,frictionloss,killZoneRatio,masterForce,masterMass,ropeLength,ropePunishWeight,offset,hideId))
 
             if not os.path.exists(pictureFolder):
                 os.makedirs(pictureFolder)
@@ -294,11 +296,22 @@ def generateSingleCondition(condition):
 def main():
 
     manipulatedVariables = OrderedDict()
-    manipulatedVariables['damping'] = [0.5]#[0.0, 1.0]
-    manipulatedVariables['frictionloss'] =[1.0]# [0.0, 0.2, 0.4]
-    manipulatedVariables['masterForce']=[0.0]#[0.0, 2.0]
-    manipulatedVariables['offset'] = [-2,-1,-0.5, 0 ,0.5,1,2]
-    manipulatedVariables['distractorNoise']=[3.0]
+    # manipulatedVariables['damping'] = [0.5]#[0.0, 1.0]
+    # manipulatedVariables['frictionloss'] =[1.0]# [0.0, 0.2, 0.4]
+    # manipulatedVariables['masterForce']=[0.0]#[0.0, 2.0]
+    # manipulatedVariables['offset'] = [-2,-1,-0.5, 0 ,0.5,1,2]
+    # manipulatedVariables['distractorNoise']=[3.0]
+
+
+    manipulatedVariables['damping'] = [0.5]
+    manipulatedVariables['frictionloss'] = [1.0]
+    manipulatedVariables['masterForce'] = [1.0]
+    manipulatedVariables['killZone'] = [2.0, 4.0]
+    manipulatedVariables['ropePunishWeight'] = [0.3, 0.5]
+    manipulatedVariables['ropeLength'] = [0.06] #ssr-1,Xp = 0.06; ssr-3 =0.09
+    manipulatedVariables['masterMass'] = [1.0] #ssr-1, ssr-3 = 1.0; Xp = 2.0
+    manipulatedVariables['offset'] = [0.0]
+
 
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]
