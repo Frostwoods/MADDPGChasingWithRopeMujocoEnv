@@ -337,7 +337,7 @@ class SimpleImageViewer(object):
 
 
 class Render:
-    def __init__(self, entitiesSizeList, entitiesColorList, numAgents,demoFolder,saveImage, getPosFromState,darwLine=False):
+    def __init__(self, entitiesSizeList, entitiesColorList, numAgents,demoFolder,saveImage, getPosFromState,darwLine=True):
         self.entitiesSizeList = entitiesSizeList
         self.entitiesColorList = entitiesColorList
         self.numEntities = len(self.entitiesSizeList)
