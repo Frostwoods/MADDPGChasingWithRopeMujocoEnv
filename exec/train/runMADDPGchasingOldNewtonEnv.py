@@ -82,14 +82,14 @@ def main():
     sheepsID = list(range(numWolves, numAgents))
     blocksID = list(range(numAgents, numEntities))
 
-    wolfSize = 1.5
-    sheepSize = 1.5
-    blockSize = 1.5
+    wolfSize = 0.075
+    sheepSize = 0.05
+    blockSize = 0.2
     entitiesSizeList = [wolfSize] * numWolves + [sheepSize] * numSheeps + [blockSize] * numBlocks
 
-    wolfMaxSpeed = 1000 #!!
+    wolfMaxSpeed = 1
     blockMaxSpeed = None
-    sheepMaxSpeedOriginal = 1000
+    sheepMaxSpeedOriginal = 1.3
     sheepMaxSpeed = sheepMaxSpeedOriginal * sheepSpeedMultiplier
 
     entityMaxSpeedList = [wolfMaxSpeed] * numWolves + [sheepMaxSpeed] * numSheeps + [blockMaxSpeed] * numBlocks
@@ -130,7 +130,8 @@ def main():
     reshapeAction = ReshapeAction()
     getCollisionForce = GetCollisionForce()
     applyActionForce = ApplyActionForce(wolvesID, sheepsID, entitiesMovableList)
-    applyEnvironForce = ApplyEnvironForce(numEntities, entitiesMovableList, entitiesSizeList,  getCollisionForce, getPosFromAgentState)
+    applyEnvironForce = ApplyEnvironForce\
+        (numEntities, entitiesMovableList, entitiesSizeList,  getCollisionForce, getPosFromAgentState)
     integrateState = IntegrateState(numEntities, entitiesMovableList, massList, entityMaxSpeedList, getVelFromAgentState, getPosFromAgentState)
     transit = TransitMultiAgentChasingForExp(reshapeAction, applyActionForce, applyEnvironForce, integrateState,checkAllAgents)
 

@@ -93,7 +93,7 @@ class PunishForOutOfBound:
     def __call__(self, agentPos):
         punishment = 0
         for i in range(self.physicsDim):
-            x = abs(agentPos[i]-30)
+            x = abs(agentPos[i])
             punishment += self.bound(x)
         return punishment
 
@@ -395,7 +395,7 @@ class TransitMultiAgentChasing:
 class ReshapeAction:
     def __init__(self):
         self.actionDim = 2
-        self.sensitivity = 30
+        self.sensitivity = 5
 
     def __call__(self, action): # action: tuple of dim (5,1)
         actionX = action[1] - action[2]
