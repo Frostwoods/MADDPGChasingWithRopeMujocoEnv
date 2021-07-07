@@ -35,11 +35,11 @@ def makeVideo(condition):
         masterMass = float(condition['masterMass'])
         dt = 0.02
         offsetFrame = int (offset/dt)
-        
+
         damping = float(condition['damping'])
         frictionloss = float(condition['frictionloss'])
         masterForce = float(condition['masterForce'])
-        distractorNoise = float(condition['distractorNoise'])
+        # distractorNoise = float(condition['distractorNoise'])
         offset = float(condition['offset'])
         hideId = int(condition['hideId'])
 
@@ -58,7 +58,7 @@ def makeVideo(condition):
     if not os.path.exists(videoFolder):
         os.makedirs(videoFolder)
     # videoPath= os.path.join(videoFolder,'MADDPGMujocoEnvWithRopeAdd2Distractor_damping={}_frictionloss={}_masterForce={}.avi'.format(damping,frictionloss,masterForce))
-    videoPath= os.path.join(videoFolder,'MADDPGMujocoEnvWithRopeAdd2DistractorWithRopePunish_damping={}_frictionloss={}_masterForce={}_offset={}_hideId={}.avi'.format(damping,frictionloss,masterForce,offset,hideId))
+    videoPath= os.path.join(videoFolder,'damping={}_frictionloss={}_killZoneRatio{}_masterForce={}_masterMass={}_ropeLength={}_ropePunishWeight={}_offset={}_hideId={}.avi'.format(damping,frictionloss,killZoneRatio,masterForce,masterMass,ropeLength,ropePunishWeight,offset,hideId))
     # videoPath= os.path.join(mainDemoFolder,'MADDPGMujocoEnvWithRopeAdd2DistractorWithRopePunish_damping={}_frictionloss={}_masterForce={}.avi'.format(damping,frictionloss,masterForce))
     # videoPath= os.path.join(videoFolder,'CrossSheepMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed_damping={}_frictionloss={}_masterForce={}.avi'.format(damping,frictionloss,masterForce))
     # videoPath= os.path.join(videoFolder,'OffsetWolfForwardMADDPGMujocoEnvWithRopeAddDistractor_wolfHideSpeed_damping={}_frictionloss={}_masterForce={}_offsetFrame={}.avi'.format(damping,frictionloss,masterForce,offsetFrame))
@@ -97,6 +97,7 @@ def main():
     manipulatedVariables['ropeLength'] = [0.06] #ssr-1,Xp = 0.06; ssr-3 =0.09
     manipulatedVariables['masterMass'] = [1.0] #ssr-1, ssr-3 = 1.0; Xp = 2.0
     manipulatedVariables['offset'] = [0]
+    manipulatedVariables['hideId'] = [3]
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]
 
