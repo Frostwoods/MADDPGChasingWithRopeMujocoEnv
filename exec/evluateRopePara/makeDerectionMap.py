@@ -79,14 +79,15 @@ class DrawGird():
         pass
     def __call__(self,ax,wolfPos):
         ax.grid(color='r',linestyle='--')
-        plt.scatter(wolfPos[0], wolfPos[1], s=0.05, c=[255,0,0], alpha=0.5)
+        plt.scatter([wolfPos[0]], [wolfPos[1]],c='red')
 class DrawSingleArrow():
     def __init__(self):
         pass
     def __call__(self,ax,sheepPos,action):
-        plt.scatter(sheepPos[0], sheepPos[1], s=0.05, c=[255,0,0], alpha=0.5)
-        ax.arrow(sheepPos[0], sheepPos[1], action[0], action[1], width=0.01,length_includes_head=True,head_width=0.25,head_length=1,fc='r',ec='b')
- 
+        plt.scatter(sheepPos[0], sheepPos[1],c='green',s=5)
+        # print(action)
+        ax.arrow(sheepPos[0], sheepPos[1], action[0], action[1], width=0.01,length_includes_head=True,head_width=0,head_length=0,fc='r',ec='b')
+
 
 class DrawSingleChasingMap():
     def __init__(self,sheepFixPosList,sampleNums,sampleAllState,sheepPolicy,drawGird,drawSingleArrow):
@@ -101,11 +102,15 @@ class DrawSingleChasingMap():
         ax.set_xlim(-1, 1)
         ax.set_ylim(-1, 1)
         self.drawGird(ax,wolfPos)
+        # sheepPos=[]
         for sheepPos in self.sheepFixPosList:
-            allAction = [self.sheepPolicy(self.sampleAllState(wolfPos,sheepPos))]
-            self.drawSingleArrow(ax,sheepPos,np.mean(allAction))
+            allAction = [self.sheepPolicy(self.sampleAllState(wolfPos,sheepPos)) for _ in range(self.sampleNums)]
+            # print(np.array(allAction))
+            print(np.mean(np.array(allAction),axis =0),"23s")
+            self.drawSingleArrow(ax,sheepPos,np.mean(np.array(allAction),axis =0))
 
-        pass
+        # print(sheepPos)
+        # print(self.sheepFixPosList)
 if __name__ == '__main__':
     # manipulatedVariables = OrderedDict()
     # manipulatedVariables['damping'] = [0.5]
@@ -116,7 +121,7 @@ if __name__ == '__main__':
     # manipulatedVariables['ropeLength'] = [0.06] #ssr-1,Xp = 0.06; ssr-3 =0.09
     # manipulatedVariables['masterMass'] = [1.0] #ssr-1, ssr-3 = 1.0; Xp = 2.0
     # manipulatedVariables['offset'] = [0.0]
-    
+
     # levelNames = list(manipulatedVariables.keys())
     # levelValues = list(manipulatedVariables.values())
     # modelIndex = pd.MultiIndex.from_product(levelValues, names=levelNames)
@@ -195,7 +200,7 @@ if __name__ == '__main__':
     maxRopePartLength = ropeLength
 
     reset = ResetUniformWithoutXPosForLeashed(physicsSimulation, qPosInit, qVelInit, numAgent, tiedAgentId,ropePartIndex, maxRopePartLength, qPosInitNoise, qVelInitNoise)
-    fixReset = FixResetUniformWithoutXPosForLeashed(physicsSimulation, qPosInit, qVelInit, numAgent, tiedAgentId,ropePartIndex, maxRopePartLength, qPosInitNoise, qVelInitNoise)  
+    fixReset = FixResetUniformWithoutXPosForLeashed(physicsSimulation, qPosInit, qVelInit, numAgent, tiedAgentId,ropePartIndex, maxRopePartLength, qPosInitNoise, qVelInitNoise)
 
     observeOneAgent = lambda agentID: Observe(agentID, wolvesID, sheepsID + masterID +distractorID, [], getPosFromAgentState, getVelFromAgentState)
     observe = lambda state: [observeOneAgent(agentID)(state) for agentID in range(numAgent)]
@@ -212,10 +217,10 @@ if __name__ == '__main__':
     # ------------ model ------------------------
     buildMADDPGModels = BuildMADDPGModels(actionDim, numAgent, obsShape)
     modelsList = [buildMADDPGModels(layerWidth, agentID) for agentID in range(numAgent)]
-
+    modelSaveName = 'expTrajMADDPGMujocoEnvJune'
     dataFolder = os.path.join(dirName, '..','..', 'data')
     mainModelFolder = os.path.join(dataFolder,'model')
-    modelFolder = os.path.join(mainModelFolder, 'modelSaveName','damping={}_frictionloss={}_killZoneRatio{}_masterForce={}_masterMass={}_ropeLength={}_ropePunishWeight={}'.format(damping,frictionloss,killZoneRatio,masterForce,masterMass,ropeLength,ropePunishWeight))
+    modelFolder = os.path.join(mainModelFolder, modelSaveName,'damping={}_frictionloss={}_killZoneRatio{}_masterForce={}_masterMass={}_ropeLength={}_ropePunishWeight={}'.format(damping,frictionloss,killZoneRatio,masterForce,masterMass,ropeLength,ropePunishWeight))
     fileName = "maddpg{}episodes{}step_agent".format(maxEpisode, maxTimeStep)
 
     modelPaths = [os.path.join(modelFolder,  fileName + str(i) +str(evaluateEpisode)+'eps') for i in range(numAgent)]
@@ -223,13 +228,14 @@ if __name__ == '__main__':
     [restoreVariables(model, path) for model, path in zip(modelsList, modelPaths)]
     actOneStepOneModel = ActOneStep(actByPolicyTrainNoisy)
     # policy = lambda allAgentsStates: [actOneStepOneModel(model, observe(allAgentsStates)) for model in modelsList]
-    sheepPolicy = lambda allAgentsStates: actOneStepOneModel(modelsList[sheepsID[0]], observe(allAgentsStates))
+    reshapeAction=ReshapeAction(0.3)
+    sheepPolicy = lambda allAgentsStates: reshapeAction(actOneStepOneModel(modelsList[sheepsID[0]], observe(allAgentsStates)))
 
 
 
     sheepPosRange = [-0.8,-0.4,0.0,0.4,0.8]
-    sheepFixPosList = it.product(sheepPosRange,sheepPosRange)
-    sampleNums = 10
+    sheepFixPosList = list(it.product(sheepPosRange,sheepPosRange))
+    sampleNums = 100
 
     drawGird = DrawGird()
     drawSingleArrow = DrawSingleArrow()
@@ -240,22 +246,24 @@ if __name__ == '__main__':
 
     posValue = OrderedDict()
     posValue['wolfXPos'] = [-0.50,0.00,0.50]
-    posValue['wolfYPos'] = [-0.50,0.00,0.50]
+    posValue['wolfYPos'] = [0.50,0.00,-0.50]
 
     fig = plt.figure()
-    rowName = 'wolfXPos'
-    columnName = 'wolfYPos'
+    rowName = 'wolfYPos'
+    columnName = 'wolfXPos'
     numRows = len(posValue[rowName])
     numColumns = len(posValue[columnName])
     plotCounter = 1
 
-    for xPos in posValue[rowName]:
-        for yPos in posValue[columnName]:
+    for yPos in posValue[rowName]:
+        for xPos in posValue[columnName]:
             axForDraw = fig.add_subplot(numRows,numColumns,plotCounter)
             if plotCounter % numColumns == 1:
-                axForDraw.set_ylabel(rowName+': {}'.format(xPos))
+                axForDraw.set_ylabel(rowName+': {}'.format(yPos))
             if plotCounter <= numColumns:
-                axForDraw.set_title(columnName+': {}'.format(yPos))
-            drawSingleChasingMap([xPos,yPos])
+                axForDraw.set_title(columnName+': {}'.format(xPos))
+            drawSingleChasingMap([xPos,yPos],axForDraw)
             plotCounter += 1
+            print(plotCounter)
     plt.suptitle('chasingMap')
+    plt.show()
