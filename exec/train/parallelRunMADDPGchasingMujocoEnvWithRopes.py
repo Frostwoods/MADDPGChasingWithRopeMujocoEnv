@@ -42,7 +42,9 @@ def main():
     startTime = time.time()
     # fileName = 'runMADDPGchasingMujocoEnvWithRopes.py'
     # fileName = 'runMADDPGchasingMujocoEnvWithRopesAdd2DistractorsWithRopePunish.py'
-    fileName = 'runMADDPGchasingOldNewtonEnv.py'
+    # fileName = 'runMADDPGchasingOldNewtonEnv.py'
+    fileName = 'runMADDPGchasingExpEnv.py'
+    
     numSample = None
     numCpuToUse = 27#int(0.8 * os.cpu_count())
     excuteCodeParallel = ExcuteCodeOnConditionsParallel(fileName, numSample, numCpuToUse)
@@ -51,6 +53,8 @@ def main():
     manipulatedVariables = OrderedDict()
     manipulatedVariables['numWolves'] = [2]
     manipulatedVariables['numSheeps'] = [1,2,4]
+    manipulatedVariables['sheepWolfForceRatio'] = [1.0]
+    manipulatedVariables['killZoneRatio'] = [1.0]
 # 
     # manipulatedVariables['damping'] = [0.0, 0.5]
     # manipulatedVariables['frictionloss'] = [1.0]

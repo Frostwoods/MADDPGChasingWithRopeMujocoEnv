@@ -46,13 +46,13 @@ class GetActionCost:
 
 
 class IsCollision:
-    def __init__(self, getPosFromState):
+    def __init__(self, getPosFromState,killZone = 0):
         self.getPosFromState = getPosFromState
-
+        self.killZone = killZone
     def __call__(self, agent1State, agent2State, agent1Size, agent2Size):
         posDiff = self.getPosFromState(agent1State) - self.getPosFromState(agent2State)
         dist = np.sqrt(np.sum(np.square(posDiff)))
-        minDist = agent1Size + agent2Size
+        minDist = agent1Size + agent2Size+self.killZone
         return True if dist < minDist else False
 
 
@@ -353,6 +353,39 @@ class IntegrateState:
             nextState.append(getNextState(entityNextPos, entityNextVel))
 
         return nextState
+class ReshapeActionVariousForce:
+    def __init__(self):
+        self.actionDim = 2
+        # self.sensitivity = 1
+
+    def __call__(self, action, sensitivity):  # action: tuple of dim (5,1)
+        actionX = action[1] - action[2]
+        actionY = action[3] - action[4]
+        actionReshaped = np.array([actionX, actionY]) * sensitivity
+        return actionReshaped
+class TransitMultiAgentChasingForExpVariousForce:
+    def __init__(self, reshapeHumanAction, reshapeSheepAction, applyActionForce, applyEnvironForce, integrateState, checkAllAgents):
+        self.reshapeHumanAction = reshapeHumanAction
+        self.reshapeSheepAction = reshapeSheepAction
+        self.applyActionForce = applyActionForce
+        self.applyEnvironForce = applyEnvironForce
+        self.integrateState = integrateState
+        self.checkAllAgents = checkAllAgents
+
+    def __call__(self, state, humanAction, SheepAction,wolfForce,sheepForce):
+        # print(state,actions)
+        humanAction = [self.reshapeHumanAction(action,wolfForce) for action in humanAction]
+        SheepAction = [self.reshapeSheepAction(action,sheepForce) for action in SheepAction]
+        # actions = [self.reshapeAction(action) for action in actions]
+        actions = humanAction + SheepAction
+        self.numEntities = len(state)
+        p_force = [None] * self.numEntities
+        p_force = self.applyActionForce(p_force, actions)
+        p_force = self.applyEnvironForce(p_force, state)
+        nextState = self.integrateState(p_force, state)
+        nextState = self.checkAllAgents(nextState)
+        return nextState
+
 class TransitMultiAgentChasingForExp:
     def __init__(self, reshapeAction, applyActionForce, applyEnvironForce, integrateState,checkAllAgents):
         
@@ -372,6 +405,7 @@ class TransitMultiAgentChasingForExp:
         nextState = self.integrateState(p_force, state)
         nextState = self.checkAllAgents(nextState)
         return nextState
+
 
 class TransitMultiAgentChasing:
     def __init__(self, numEntities, reshapeAction, applyActionForce, applyEnvironForce, integrateState):
