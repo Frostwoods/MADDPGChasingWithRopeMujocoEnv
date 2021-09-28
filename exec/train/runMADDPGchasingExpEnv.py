@@ -66,7 +66,7 @@ def main():
 
         maxTimeStep = 100# int(condition['maxTimeStep'])
         sheepSpeedMultiplier =1.3 #float(condition['sheepSpeedMultiplier'])
-        individualRewardWolf =1 #float(condition['individualRewardWolf'])
+        individualRewardWolf =0 #float(condition['individualRewardWolf'])
         costActionRatio = 0#float(condition['costActionRatio'])
 
         saveAllmodels = 1
