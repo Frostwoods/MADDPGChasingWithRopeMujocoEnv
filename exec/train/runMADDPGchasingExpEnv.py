@@ -58,6 +58,8 @@ def main():
         numSheeps = int(condition['numSheeps'])
         sheepWolfForceRatio = float(condition['sheepWolfForceRatio'])
         killZoneRatio = float(condition['killZoneRatio'])
+        maxRange = float(condition['maxRange'])
+        individualRewardWolf = 1 #float(condition['individualRewardWolf'])
 
         numBlocks = 0
 
@@ -66,7 +68,6 @@ def main():
 
         maxTimeStep = 100# int(condition['maxTimeStep'])
         sheepSpeedMultiplier =1.3 #float(condition['sheepSpeedMultiplier'])
-        individualRewardWolf =0 #float(condition['individualRewardWolf'])
         costActionRatio = 0#float(condition['costActionRatio'])
 
         saveAllmodels = 1
@@ -77,7 +78,7 @@ def main():
 
     dataFolder = os.path.join(dirName, '..','..', 'data')
     mainModelFolder = os.path.join(dataFolder,'model')
-    modelFolder = os.path.join(mainModelFolder, 'originEnv9.16','indvidulReward={}_sheepWolfForceRatio={}_killZoneRatio={}'.format(individualRewardWolf,sheepWolfForceRatio,killZoneRatio),'{} wolves, {} sheep, {} blocks'.format(numWolves, numSheeps, numBlocks))
+    modelFolder = os.path.join(mainModelFolder, 'originEnv9.16','indvidulReward={}_sheepWolfForceRatio={}_killZoneRatio={}_maxRange={}'.format(individualRewardWolf,sheepWolfForceRatio,killZoneRatio,maxRange),'{} wolves, {} sheep, {} blocks'.format(numWolves, numSheeps, numBlocks))
 
     if not os.path.exists(modelFolder):
         os.makedirs(modelFolder)
@@ -119,18 +120,18 @@ def main():
     rewardFunc = lambda state, action, nextState: \
         list(rewardWolf(state, action, nextState)) + list(rewardSheep(state, action, nextState))
     
-    minDistanceForReborn = 10
+    # minDistanceForReborn = 10
     # numPlayers = 2
     # gridSize = 60
     # reset0 = ResetMultiAgentNewtonChasing(gridSize, numWolves, minDistanceForReborn)
-    reset0 =  ResetMultiAgentChasingWithVariousSheep(numWolves, numBlocks)
+    reset0 =  ResetMultiAgentChasingWithVariousSheep(numWolves, numBlocks,maxRange)
     reset = lambda :reset0(numSheeps)
     # reset = ResetMultiAgentChasing(numAgents, numBlocks)
     observeOneAgent = lambda agentID: Observe(agentID, wolvesID, sheepsID, blocksID, getPosFromAgentState, getVelFromAgentState)
     observe = lambda state: [observeOneAgent(agentID)(state) for agentID in range(numAgents)]
     
     # stayInBoundaryByReflectVelocity = StayInBoundaryByReflectVelocity( [0, gridSize - 1], [0, gridSize - 1])
-    stayInBoundaryByReflectVelocity = StayInBoundaryByReflectVelocity( [-1,1], [-1, 1])
+    stayInBoundaryByReflectVelocity = StayInBoundaryByReflectVelocity( [-maxRange,maxRange], [-maxRange, maxRange])
     def checkBoudary(agentState):
         newState = stayInBoundaryByReflectVelocity(getPosFromAgentState(agentState),getVelFromAgentState(agentState))
         return newState

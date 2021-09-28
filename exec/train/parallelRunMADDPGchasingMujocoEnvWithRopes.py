@@ -55,6 +55,7 @@ def main():
     manipulatedVariables['numSheeps'] = [1,2,4]
     manipulatedVariables['sheepWolfForceRatio'] = [1.0]
     manipulatedVariables['killZoneRatio'] = [1.0]
+    manipulatedVariables['maxRange'] = [0.6]
 # 
     # manipulatedVariables['damping'] = [0.0, 0.5]
     # manipulatedVariables['frictionloss'] = [1.0]
