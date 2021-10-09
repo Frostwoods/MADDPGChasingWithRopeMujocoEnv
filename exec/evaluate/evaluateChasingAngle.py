@@ -391,7 +391,7 @@ def main():
     toSplitFrame = pd.DataFrame(index=modelIndex)
 
 
-    
+
     # levelNames2 = list(manipulatedVariables2.keys())
     # levelValues2 = list(manipulatedVariables2.values())
     # modelIndex2 = pd.MultiIndex.from_product(levelValues2, names=levelNames2)
@@ -415,11 +415,21 @@ def main():
 
     computeStatistics = ComputeStatistics(loadTrajectoriesFromDf, measurementFunction)
     statisticsDf = toSplitFrame.groupby(levelNames).apply(computeStatistics)
+
+
+    # print(statisticsDf)
+
+    # manipulatedVariables = OrderedDict()
+    # manipulatedVariables['damping'] = [0,1.0]#[0.0, 1.0]
+    # manipulatedVariables['frictionloss'] =[0,0.2]# [0.0, 0.2, 0.4]
+    # manipulatedVariables['masterForce']=[0,1.0]#[0.0, 2.0]
+
+
     # statisticsDf2 = toSplitFrame2.groupby(levelNames2).apply(computeStatistics)
-    
+
     # print(statisticsDf)
     # print(statisticsDf2)
-    
+
     statisticsDf3 = statisticsDf.reset_index()
 
     measurementFunction2 = lambda trajectory: calculateWolfSheepChasingSubtlety(trajectory)
@@ -434,8 +444,9 @@ def main():
     df = statisticsDf3.groupby('offset').mean()
     # df2 = df.groupby('hideId').mean()
     print(df)
-    
- 
+
+
+
     from matplotlib import pyplot as plt
     fig = plt.figure()
     axForDraw = fig.add_subplot(1,1,1)
