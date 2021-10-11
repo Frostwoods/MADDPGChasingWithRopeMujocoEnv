@@ -1,0 +1,273 @@
+<mujoco>
+    <option gravity="0 0 0" timestep="0.02"/>
+<default>
+    <geom rgba="0 0 0 1"/>
+</default>
+    <worldbody>
+    <light diffuse=".2 .2 .2" pos="0 0 20" dir="0 0 -1" mode="track"/>
+    <body>
+      <geom name='floor' pos='0 0 -0.475' size='10 10 .1' mass="10000" type='box' condim='3' rgba=".9 .9 .9 1" />
+    <camera name="center" mode="fixed" pos="0 0 5" />
+     <camera name="30" mode="fixed" pos="0 -5 10"  axisangle="1 0 0 30"    />
+    </body>
+
+    <body name="predator0" pos="0 0 0">
+            <joint axis="1 0 0" damping="2.5" frictionloss="0" name="predator00" pos="0 0 0" type="slide"/>
+            <joint axis="0 1 0" damping="2.5" frictionloss="0" name="predator01" pos="0 0 0" type="slide"/>
+            <geom type="cylinder" size="0.05 0.075" mass="1" conaffinity="1" solimp="0.9 0.9999 0.001 0.5 1" solref="0.5 0.2" rgba="1 0 0 0.1"/>
+            <site name="predator0" pos="-0 0 0" type="sphere" size="0.001"/>
+    </body>
+
+
+
+    <body name="prey0" pos="0 0 0">
+            <joint axis="1 0 0" damping="2.5" frictionloss="0" name="prey00" pos="0 0 0" type="slide"/>
+            <joint axis="0 1 0" damping="2.5" frictionloss="0" name="prey01" pos="0 0 0" type="slide"/>
+            <geom type ="cylinder" size="0.05 0.075" mass="1" conaffinity="1" solimp="0.9 0.9999 0.001 0.5 1" solref="0.5 0.2" rgba="0 1 0 0.1"/>
+            <site name="prey0" pos="0.5 0 0.075" type="sphere" size="0.001"/>
+    </body>
+
+
+
+    <body name="dragger0" pos="0 0 0">
+            <joint axis="1 0 0" damping="2.5" frictionloss="0" name="dragger00" pos="0 0 0" type="slide"/>
+            <joint axis="0 1 0" damping="2.5" frictionloss="0" name="dragger01" pos="0 0 0" type="slide"/>
+            <geom type="cylinder" size="0.05 0.075" mass="1" conaffinity="1" solimp="0.9 0.9999 0.001 0.5 1" solref="0.5 0.2" rgba="0 0 1 0.1"/>
+            <site name="dragger0" pos="-0 0 0" type="sphere" size="0.001"/>
+    </body>
+
+    <body name="distractor0" pos="0 0 0">
+            <joint axis="1 0 0" damping="2.5" frictionloss="0" name="distractor00" pos="0 0 0" type="slide"/>
+            <joint axis="0 1 0" damping="2.5" frictionloss="0" name="distractor01" pos="0 0 0" type="slide"/>
+            <geom type="cylinder" size="0.05 0.075" mass="1" conaffinity="1" solimp="0.9 0.9999 0.001 0.5 1" solref="0.5 0.2" rgba="0 1 1 0.1"/>
+            <site name="distractor0" pos="-0 0 0" type="sphere" size="0.001"/>
+    </body>
+
+    <body name="distractor1" pos="0 0 0">
+            <joint axis="1 0 0" damping="2.5" frictionloss="0" name="distractor10" pos="0 0 0" type="slide"/>
+            <joint axis="0 1 0" damping="2.5" frictionloss="0" name="distractor11" pos="0 0 0" type="slide"/>
+            <geom type="cylinder" size="0.05 0.075" mass="1" conaffinity="1" solimp="0.9 0.9999 0.001 0.5 1" solref="0.5 0.2" rgba="0 1 1 0.1"/>
+            <site name="distractor1" pos="-0 0 0" type="sphere" size="0.001"/>
+    </body>
+
+<!--site part-->
+    <body name="middle1" pos="0 0 0">
+        <joint axis="1 0 0" damping="0" name="middle1x" pos="0 0 0" type="slide"/>
+        <joint axis="0 1 0" damping="0" name="middle1y" pos="0 0 0" type="slide"/>
+        <geom type="sphere" size="0.01" name="middle1" mass="0.1" rgba="0 .9 0 1"/>
+        <site name="middle1" pos="0 0 0" type="sphere" size="0.01"/>
+    </body>
+    <body name="middle2" pos="0 0 0">
+        <joint axis="1 0 0" damping="0" name="middle2x" pos="0 0 0" type="slide"/>
+        <joint axis="0 1 0" damping="0" name="middle2y" pos="0 0 0" type="slide"/>
+        <geom type="sphere" size="0.01" name="middle2" mass="0.1" rgba="0 .9 0 1"/>
+        <site name="middle2" pos="0 0 0" type="sphere" size="0.01"/>
+    </body>
+    <body name="middle3" pos="0 0 0">
+        <joint axis="1 0 0" damping="0" name="middle3x" pos="0 0 0" type="slide"/>
+        <joint axis="0 1 0" damping="0" name="middle3y" pos="0 0 0" type="slide"/>
+        <geom type="sphere" size="0.01" name="middle3" mass="0.1" rgba="0 .9 0 1"/>
+        <site name="middle3" pos="0 0 0" type="sphere" size="0.01"/>
+    </body>
+    <body name="middle4" pos="0 0 0">
+        <joint axis="1 0 0" damping="0" name="middle4x" pos="0 0 0" type="slide"/>
+        <joint axis="0 1 0" damping="0" name="middle4y" pos="0 0 0" type="slide"/>
+        <geom type="sphere" size="0.01" name="middle4" mass="0.1" rgba="0 .9 0 1"/>
+        <site name="middle4" pos="0 0 0" type="sphere" size="0.01"/>
+    </body>
+        <body name="middle5" pos="0 0 0">
+        <joint axis="1 0 0" damping="0" name="middle5x" pos="0 0 0" type="slide"/>
+        <joint axis="0 1 0" damping="0" name="middle5y" pos="0 0 0" type="slide"/>
+        <geom type="sphere" size="0.01" name="middle5" mass="0.1" rgba="0 .9 0 1"/>
+        <site name="middle5" pos="0 0 0" type="sphere" size="0.01"/>
+    </body>
+    <body name="middle6" pos="0 0 0">
+        <joint axis="1 0 0" damping="0" name="middle6x" pos="0 0 0" type="slide"/>
+        <joint axis="0 1 0" damping="0" name="middle6y" pos="0 0 0" type="slide"/>
+        <geom type="sphere" size="0.01" name="middle6" mass="0.1" rgba="0 .9 0 1"/>
+        <site name="middle6" pos="0 0 0" type="sphere" size="0.01"/>
+    </body>
+    <body name="middle7" pos="0 0 0">
+        <joint axis="1 0 0" damping="0" name="middle7x" pos="0 0 0" type="slide"/>
+        <joint axis="0 1 0" damping="0" name="middle7y" pos="0 0 0" type="slide"/>
+        <geom type="sphere" size="0.01" name="middle7" mass="0.1" rgba="0 .9 0 1"/>
+        <site name="middle7" pos="0 0 0" type="sphere" size="0.01"/>
+    </body>
+    <body name="middle8" pos="0 0 0">
+        <joint axis="1 0 0" damping="0" name="middle8x" pos="0 0 0" type="slide"/>
+        <joint axis="0 1 0" damping="0" name="middle8y" pos="0 0 0" type="slide"/>
+        <geom type="sphere" size="0.01" name="middle8" mass="0.1" rgba="0 .9 0 1"/>
+        <site name="middle8" pos="0 0 0" type="sphere" size="0.01"/>
+    </body>
+    <body name="middle9" pos="0 0 0">
+        <joint axis="1 0 0" damping="0" name="middle9x" pos="0 0 0" type="slide"/>
+        <joint axis="0 1 0" damping="0" name="middle9y" pos="0 0 0" type="slide"/>
+        <geom type="sphere" size="0.01" name="middle9" mass="0.1" rgba="0 .9 0 1"/>
+        <site name="middle9" pos="0 0 0" type="sphere" size="0.01"/>
+    </body>
+
+
+
+
+
+    <body>
+      <geom name='wall1' pos='-1.25 0 -0.2' size='.25 1.5 0.5' mass="10000" type='box' rgba="0.4 0.4 0.4 0.3" condim='3'/>
+    </body>
+    <body>
+      <geom name='wall2' pos='1.25 0 -0.2' size='.25 1.5 0.5' mass="10000" type='box' rgba="0.4 0.4 0.4 0.3" condim='3'/>
+    </body>
+    <body>
+      <geom name='wall3' pos='0 -1.25 -0.2' size='1.5 .25 0.5' mass="10000" type='box' rgba="0.4 0.4 0.4 0.3" condim='3'/>
+    </body>
+    <body>
+      <geom name='wall4' pos='0 1.25 -0.2' size='1.5 .25 0.5' mass="10000" type='box' rgba="0.4 0.4 0.4 0.3" condim='3'/>
+    </body>
+
+    </worldbody>
+
+<!--tendon part-->
+    <tendon>
+        <spatial limited="true" range="0 .08" stiffness="10" damping=".65" width="0.01">
+            <site site="predator0"/>
+            <site site="middle1"/>
+        </spatial>
+    </tendon>
+    <tendon>
+        <spatial limited="true" range="0 .08" stiffness="10" damping=".65" width="0.01">
+            <site site="middle1"/>
+            <site site="middle2"/>
+        </spatial>
+    </tendon>
+    <tendon>
+        <spatial limited="true" range="0 .08" stiffness="10" damping=".65" width="0.01">
+            <site site="middle2"/>
+            <site site="middle3"/>
+        </spatial>
+    </tendon>
+    <tendon>
+        <spatial limited="true" range="0 .08" stiffness="10" damping=".65" width="0.01">
+            <site site="middle3"/>
+            <site site="middle4"/>
+        </spatial>
+    </tendon>
+    <tendon>
+        <spatial limited="true" range="0 .08" stiffness="10" damping=".65" width="0.01">
+            <site site="middle4"/>
+            <site site="middle5"/>
+        </spatial>
+    </tendon>
+    <tendon>
+        <spatial limited="true" range="0 .08" stiffness="10" damping=".65" width="0.01">
+            <site site="middle5"/>
+            <site site="middle6"/>
+        </spatial>
+    </tendon>
+    <tendon>
+        <spatial limited="true" range="0 .08" stiffness="10" damping=".65" width="0.01">
+            <site site="middle6"/>
+            <site site="middle7"/>
+        </spatial>
+    </tendon>
+    <tendon>
+        <spatial limited="true" range="0 .08" stiffness="10" damping=".65" width="0.01">
+            <site site="middle7"/>
+            <site site="middle8"/>
+        </spatial>
+    </tendon>
+    <tendon>
+        <spatial limited="true" range="0 .08" stiffness="10" damping=".65" width="0.01">
+            <site site="middle8"/>
+            <site site="middle9"/>
+        </spatial>
+    </tendon>
+    <tendon>
+        <spatial limited="true" range="0 .08" stiffness="10" damping=".65" width="0.01">
+            <site site="middle9"/>
+            <site site="dragger0"/>
+        </spatial>
+    </tendon>
+
+    <actuator>
+        <motor gear="1" joint="predator00"/>
+        <motor gear="1" joint="predator01"/>
+        <motor gear="1" joint="prey00" />
+        <motor gear="1" joint="prey01" />
+        <motor gear="1" joint="dragger00" />
+        <motor gear="1" joint="dragger01" />
+        <motor gear="1" joint="distractor00" />
+        <motor gear="1" joint="distractor01" />
+        <motor gear="1" joint="distractor10" />
+        <motor gear="1" joint="distractor11" />
+    </actuator>
+
+
+    <contact>
+
+
+        <exclude body1="predator0" body2="middle1"/>
+        <exclude body1="predator0" body2="middle2"/>
+        <exclude body1="predator0" body2="middle3"/>
+        <exclude body1="predator0" body2="middle4"/>
+        <exclude body1="predator0" body2="middle5"/>
+        <exclude body1="predator0" body2="middle6"/>
+        <exclude body1="predator0" body2="middle7"/>
+        <exclude body1="predator0" body2="middle8"/>
+        <exclude body1="predator0" body2="middle9"/>
+
+        <exclude body1="dragger0" body2="middle1"/>
+        <exclude body1="dragger0" body2="middle2"/>
+        <exclude body1="dragger0" body2="middle3"/>
+        <exclude body1="dragger0" body2="middle4"/>
+        <exclude body1="dragger0" body2="middle5"/>
+        <exclude body1="dragger0" body2="middle6"/>
+        <exclude body1="dragger0" body2="middle7"/>
+        <exclude body1="dragger0" body2="middle8"/>
+        <exclude body1="dragger0" body2="middle9"/>
+
+
+        <exclude body1="middle1" body2="middle2"/>
+        <exclude body1="middle1" body2="middle3"/>
+        <exclude body1="middle1" body2="middle4"/>
+        <exclude body1="middle1" body2="middle5"/>
+        <exclude body1="middle1" body2="middle6"/>
+        <exclude body1="middle1" body2="middle7"/>
+        <exclude body1="middle1" body2="middle8"/>
+        <exclude body1="middle1" body2="middle9"/>
+
+        <exclude body1="middle2" body2="middle3"/>
+        <exclude body1="middle2" body2="middle4"/>
+        <exclude body1="middle2" body2="middle5"/>
+        <exclude body1="middle2" body2="middle6"/>
+        <exclude body1="middle2" body2="middle7"/>
+        <exclude body1="middle2" body2="middle8"/>
+        <exclude body1="middle2" body2="middle9"/>
+
+        <exclude body1="middle3" body2="middle4"/>
+        <exclude body1="middle3" body2="middle5"/>
+        <exclude body1="middle3" body2="middle6"/>
+        <exclude body1="middle3" body2="middle7"/>
+        <exclude body1="middle3" body2="middle8"/>
+        <exclude body1="middle3" body2="middle9"/>
+
+        <exclude body1="middle4" body2="middle5"/>
+        <exclude body1="middle4" body2="middle6"/>
+        <exclude body1="middle4" body2="middle7"/>
+        <exclude body1="middle4" body2="middle8"/>
+        <exclude body1="middle4" body2="middle9"/>
+
+        <exclude body1="middle5" body2="middle6"/>
+        <exclude body1="middle5" body2="middle7"/>
+        <exclude body1="middle5" body2="middle8"/>
+        <exclude body1="middle5" body2="middle9"/>
+
+        <exclude body1="middle6" body2="middle7"/>
+        <exclude body1="middle6" body2="middle8"/>
+        <exclude body1="middle6" body2="middle9"/>
+
+        <exclude body1="middle7" body2="middle8"/>
+        <exclude body1="middle7" body2="middle9"/>
+
+        <exclude body1="middle8" body2="middle9"/>
+    </contact>
+
+</mujoco>
