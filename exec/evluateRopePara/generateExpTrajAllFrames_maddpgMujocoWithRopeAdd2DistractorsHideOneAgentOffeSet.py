@@ -86,10 +86,10 @@ def generateSingleCondition(condition):
         saveTraj=True
         saveImage=True
         visualizeMujoco=False
-        visualizeTraj = False
-        makeVideo=False
+        visualizeTraj = True
+        makeVideo=True
 
-    evalNum = 50
+    evalNum = 3
     maxRunningStepsToSample = 100
     modelSaveName = 'expTrajMADDPGMujocoEnvJune'
     # modelSaveName = 'expTrajMADDPGMujocoEnvWithRopeAdd2Distractors'
@@ -98,7 +98,7 @@ def generateSingleCondition(condition):
     sheepsID = [1]
     masterID = [2]
     distractorID = [3,4]
-    hideIdList =  distractorID + sheepsID
+    hideIdList = [3]# distractorID + sheepsID
     numAgent=5
 
 
@@ -225,7 +225,7 @@ def generateSingleCondition(condition):
 
     dataFolder = os.path.join(dirName, '..','..', 'data')
     mainModelFolder = os.path.join(dataFolder,'model')
-    modelFolder = os.path.join(mainModelFolder, 'modelSaveName','damping={}_frictionloss={}_killZoneRatio{}_masterForce={}_masterMass={}_ropeLength={}_ropePunishWeight={}'.format(damping,frictionloss,killZoneRatio,masterForce,masterMass,ropeLength,ropePunishWeight))
+    modelFolder = os.path.join(mainModelFolder, modelSaveName,'damping={}_frictionloss={}_killZoneRatio{}_masterForce={}_masterMass={}_ropeLength={}_ropePunishWeight={}'.format(damping,frictionloss,killZoneRatio,masterForce,masterMass,ropeLength,ropePunishWeight))
     fileName = "maddpg{}episodes{}step_agent".format(maxEpisode, maxTimeStep)
 
     modelPaths = [os.path.join(modelFolder,  fileName + str(i) +str(evaluateEpisode)+'eps') for i in range(numAgent)]
@@ -235,7 +235,7 @@ def generateSingleCondition(condition):
     actOneStepOneModel = ActOneStep(actByPolicyTrainNoisy)
     policy = lambda allAgentsStates: [actOneStepOneModel(model, observe(allAgentsStates)) for model in modelsList]
     # offsetFrameList=[0] + [offsetFrame]*3
-    offsetFrameList=[offsetFrame,offsetFrame,0,offsetFrame] #wolf sheep master 
+    offsetFrameList=[offsetFrame,offsetFrame,0,offsetFrame] #wolf sheep master
     for hideId in hideIdList:
         agentList = list(range(numAgent))
         del(agentList[hideId])
@@ -286,6 +286,8 @@ def generateSingleCondition(condition):
 
             if not os.path.exists(pictureFolder):
                 os.makedirs(pictureFolder)
+            else:
+                return 1
             entitiesColorList = [wolfColor] * numWolves + [sheepColor] * numSheeps + [masterColor] * numMasters + [distractorColor] * numDistractor
             render = Render(entitiesSizeListForDarw, entitiesColorList, numAgentForDarw,pictureFolder,saveImage, getPosFromAgentState)
             trajToRender = np.concatenate(newTrajList)
@@ -311,6 +313,7 @@ def main():
     manipulatedVariables['ropeLength'] = [0.06] #ssr-1,Xp = 0.06; ssr-3 =0.09
     manipulatedVariables['masterMass'] = [1.0] #ssr-1, ssr-3 = 1.0; Xp = 2.0
     manipulatedVariables['offset'] = [0.0]
+    manipulatedVariables['distractorNoise'] = [0.0]
 
 
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
