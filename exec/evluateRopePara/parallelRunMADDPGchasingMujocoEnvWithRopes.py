@@ -53,10 +53,10 @@ def main():
     manipulatedVariables['damping'] = [0.5]
     manipulatedVariables['frictionloss'] = [1.0]
     manipulatedVariables['masterForce'] = [1.0]
-    manipulatedVariables['killZone'] = [4.0,6.0]
-    manipulatedVariables['ropePunishWeight'] = [0.3,0.6]
-    manipulatedVariables['ropeLength'] = [0.08] #ssr-1,Xp = 0.06; ssr-3 =0.09
-    manipulatedVariables['masterMass'] = [1.0] #ssr-1, ssr-3 = 1.0; Xp = 2.0
+    manipulatedVariables['killZone'] = [4.0]
+    manipulatedVariables['ropePunishWeight'] = [0.3]
+    manipulatedVariables['ropeLength'] = [0.04, 0.06] #ssr-1,Xp = 0.06; ssr-3 =0.09
+    manipulatedVariables['masterMass'] = [1.0, 2.0] #ssr-1, ssr-3 = 1.0; Xp = 2.0
 
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]

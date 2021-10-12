@@ -144,10 +144,10 @@ def calculateCrossLeash(traj):
         else:
             return False
 
-    crossRatio=np.mean([calculateCross(np.array(traj[index][0]),np.array(traj[index][2]),np.array(traj[index][1]),np.array(traj[index+1][1])) for index in  range(0,len(traj)-1)])
+    crossNum = np.sum([calculateCross(np.array(traj[index][0]),np.array(traj[index][2]),np.array(traj[index][1]),np.array(traj[index+1][1])) for index in  range(0,len(traj)-1)])
     # print(wolfMasterAngle)
 
-    return crossRatio
+    return crossNum 
 
 class ComputeStatistics:
     def __init__(self, getTrajectories, measurementFunction):
@@ -180,7 +180,7 @@ def main():
     damping = 0.5
     frictionloss = 1.0
     masterForce = 1.0
-    killZone = 6.0
+    killZone = 4.0
     ropePunishWeight = 0.6
     ropeLength = 0.08
     masterMass = 1.0
@@ -190,7 +190,7 @@ def main():
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]
 
     evalNum=50
-    evaluateEpisode=50000
+    evaluateEpisode=120000
 
     # for condition in conditions:
     # #     print(condition)
@@ -224,8 +224,7 @@ def main():
     fuzzySearchParameterNames = []
     loadTrajectories = LoadTrajectories(getTrajectorySavePath, loadFromPickle, fuzzySearchParameterNames)
     loadTrajectoriesFromDf = lambda df: loadTrajectories(readParametersFromDf(df))
-    tragetAgentsId = [0,2]
-    measurementFunction = lambda trajectory: calculateDistance(trajectory,tragetAgentsId)
+    measurementFunction = lambda trajectory: calculateCrossLeash(trajectory)
 
     computeStatistics = ComputeStatistics(loadTrajectoriesFromDf, measurementFunction)
     statisticsDf = toSplitFrame.groupby(levelNames).apply(computeStatistics)
@@ -265,9 +264,9 @@ def main():
     fig = plt.figure()
     axForDraw = fig.add_subplot(1,1,1)
     df.plot(ax=axForDraw, label='wolf-master', y='mean',marker='o', logx=False)
-    plt.hlines(baseLine[0], -1.0,1.0, colors = "r", linestyles = "dashed")
-    axForDraw.set_ylim(0, 1)
-    plt.suptitle('Wolf-Master,averageDistance\nBaseLine:Wolf-Sheep\nropePunishWeight={}killZone={}ropeLength={}'.format(ropePunishWeight,killZone,ropeLength))
+    # plt.hlines(baseLine[0], -1.0,1.0, colors = "r", linestyles = "dashed")
+    # axForDraw.set_ylim(0, 1)
+    plt.suptitle('sheepCrossLeashPerTraj\n50trajs\nropePunishWeight={}killZone={}ropeLength={}'.format(ropePunishWeight,killZone,ropeLength))
 
     plt.legend(loc='best')
     plt.show()
