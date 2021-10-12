@@ -12,6 +12,7 @@ import numpy as np
 from collections import OrderedDict
 import itertools as it
 
+
 class ExcuteCodeOnConditionsParallel:
     def __init__(self, codeFileName, numSample, numCmdList):
         self.codeFileName = codeFileName
@@ -38,25 +39,28 @@ class ExcuteCodeOnConditionsParallel:
             proc.wait()
         return cmdList
 
+
 def main():
     startTime = time.time()
     # fileName = 'runMADDPGchasingMujocoEnvWithRopes.py'
     # fileName = 'runMADDPGchasingMujocoEnvWithRopesAdd2DistractorsWithRopePunish.py'
     # fileName = 'runMADDPGchasingOldNewtonEnv.py'
     fileName = 'runMADDPGchasingExpEnv.py'
-    
+
     numSample = None
-    numCpuToUse = 27#int(0.8 * os.cpu_count())
+    numCpuToUse = 27  # int(0.8 * os.cpu_count())
     excuteCodeParallel = ExcuteCodeOnConditionsParallel(fileName, numSample, numCpuToUse)
     print("start")
 
     manipulatedVariables = OrderedDict()
     manipulatedVariables['numWolves'] = [2]
-    manipulatedVariables['numSheeps'] = [1,2,4]
-    manipulatedVariables['sheepWolfForceRatio'] = [1.0]
+    manipulatedVariables['numSheeps'] = [4, 2, 1]
+    manipulatedVariables['sheepWolfForceRatio'] = [1.3]
     manipulatedVariables['killZoneRatio'] = [1.0]
-    manipulatedVariables['maxRange'] = [0.6]
-# 
+    manipulatedVariables['maxRange'] = [0.8]
+    manipulatedVariables['sizeRatio'] = [0.5]
+
+#
     # manipulatedVariables['damping'] = [0.0, 0.5]
     # manipulatedVariables['frictionloss'] = [1.0]
     # manipulatedVariables['masterForce'] = [0.0, 1.0]
