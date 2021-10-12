@@ -84,13 +84,7 @@ def calculateChasingSubtlety(traj):
         v2=complex(vector2[0],vector2[1])
 
         return np.abs(np.angle(v1/v2))*180/np.pi
-    # for traj in trajs:
-    # wolfSheepAngle=np.mean([calculateIncludedAngle(np.array(state[0][0][2:4]),np.array(state[0][1][0:2])-np.array(state[0][0][0:2])) for state in  traj    ])
-    # wolfSheepAngle=np.mean([calculateIncludedAngle(np.array(traj[index][1])-np.array(traj[index][0]),np.array(traj[index+1][0])-np.array(traj[index][0])) for index in  range(0,len(traj)-1)    ])
-    # wolfSheepAngleList.append(wolfSheepAngle)
-    # averageAngle = np.mean(wolfSheepAngleList)
 
-    # wolfMasterAngle=np.mean([calculateIncludedAngle(np.array(state[0][2][2:4]),np.array(state[0][0][0:2])-np.array(state[0][2][0:2])) for state in  traj    ])
     wolfMasterAngle=np.mean([calculateIncludedAngle(np.array(traj[index][0])-np.array(traj[index][2]),np.array(traj[index+1][2])-np.array(traj[index][2])) for index in  range(0,len(traj)-1)])
     # print(wolfMasterAngle)
 
@@ -108,12 +102,7 @@ def calculateWolfSheepChasingSubtlety(traj):
     # for traj in trajs:
     # wolfSheepAngle=np.mean([calculateIncludedAngle(np.array(state[0][0][2:4]),np.array(state[0][1][0:2])-np.array(state[0][0][0:2])) for state in  traj    ])
     wolfSheepAngle=np.mean([calculateIncludedAngle(np.array(traj[index][1])-np.array(traj[index][0]),np.array(traj[index+1][0])-np.array(traj[index][0])) for index in  range(0,len(traj)-1)    ])
-    # wolfSheepAngleList.append(wolfSheepAngle)
-    # averageAngle = np.mean(wolfSheepAngleList)
 
-    # wolfMasterAngle=np.mean([calculateIncludedAngle(np.array(state[0][2][2:4]),np.array(state[0][0][0:2])-np.array(state[0][2][0:2])) for state in  traj    ])
-    # wolfMasterAngle=np.mean([calculateIncludedAngle(np.array(traj[index][0])-np.array(traj[index][2]),np.array(traj[index+1][2])-np.array(traj[index][2])) for index in  range(0,len(traj)-1)])
-    # print(wolfMasterAngle)
 
     return wolfSheepAngle
 
@@ -180,9 +169,9 @@ def main():
     damping = 0.5
     frictionloss = 1.0
     masterForce = 1.0
-    killZone = 4.0
-    ropePunishWeight = 0.6
-    ropeLength = 0.08
+    killZone = 2.0
+    ropePunishWeight = 0.3
+    ropeLength = 0.06
     masterMass = 1.0
     distractorNoise = 0.0
 
@@ -212,7 +201,8 @@ def main():
     dataFolder = os.path.join(dirName, '..','..', 'data')
     # trajectoryDirectory= os.path.join(dataFolder,'trajectory','noiseOffsetMasterForSelect6.8')
     modelSaveName = 'expTrajMADDPGMujocoEnvOct'
-    trajectoryDirectory = os.path.join(dataFolder, 'Exptrajectory', modelSaveName,'noiseOffsetMasterForSelectOct11')
+    # trajectoryDirectory = os.path.join(dataFolder, 'Exptrajectory', modelSaveName,'noiseOffsetMasterForSelectOct11')
+    trajectoryDirectory = os.path.join(dataFolder, 'trajectory', 'noiseOffsetMasterForSelectOct12')
     trajectoryExtension = '.pickle'
 
     # trajectoryFixedParameters = {'evalNum':evalNum,'evaluateEpisode':evaluateEpisode}
@@ -263,46 +253,14 @@ def main():
     from matplotlib import pyplot as plt
     fig = plt.figure()
     axForDraw = fig.add_subplot(1,1,1)
-    df.plot(ax=axForDraw, label='wolf-master', y='mean',marker='o', logx=False)
-    # plt.hlines(baseLine[0], -1.0,1.0, colors = "r", linestyles = "dashed")
+    df.plot(ax=axForDraw, label='wolf-master', y='mean',marker='o',color='blue', logx=False)
+    plt.hlines(baseLine[0], -1.0,1.0, colors = "r", linestyles = "dashed")
     # axForDraw.set_ylim(0, 1)
-    plt.suptitle('sheepCrossLeashPerTraj\n50trajs\nropePunishWeight={}killZone={}ropeLength={}'.format(ropePunishWeight,killZone,ropeLength))
+    # plt.suptitle('sheepCrossLeashPerTraj\n50trajs\nropePunishWeight={}killZone={}ropeLength={}'.format(ropePunishWeight,killZone,ropeLength))
+    plt.suptitle('sheepCrossLeashPerTraj\n50trajs\nmasterMass={}killZone={}ropeLength={}'.format(masterMass,killZone,ropeLength))
 
     plt.legend(loc='best')
     plt.show()
-    # meanSub.plot(kind = 'bar',ax=axForDraw, y='mean', logx=False,label='displayTime={}'.format(displayTime))
-    # plt.bar(displayTime, meanSub, label='displayTime={}'.format(displayTime), align='center')
-    # plt.hlines(1/6, -0.5,1.5, colors = "r", linestyles = "dashed")
-    # fig.set_xlim(-0, 1)
-#     fig = plt.figure()
-#     numRows = len(manipulatedVariables['damping'])
-#     numColumns = len(manipulatedVariables['frictionloss'])
 
-#     def drawPerformanceLine(dataDF,axForDraw):
-#         dataDF.plot(ax=axForDraw,label='masterForce',y='mean',yerr='std',marker='o',logx=False)
-
-#     plotCounter = 1
-#     for damping, grp in statisticsDf.groupby('damping'):
-#         grp.index = grp.index.droplevel('damping')
-
-#         for frictionloss, group in grp.groupby('frictionloss'):
-#             group.index = group.index.droplevel('frictionloss')
-
-#             axForDraw = fig.add_subplot(numRows,numColumns,plotCounter)
-#             if plotCounter % numColumns == 1:
-#                 axForDraw.set_ylabel('damping: {}'.format(damping))
-#             if plotCounter <= numColumns:
-#                 axForDraw.set_title('frictionloss: {}'.format(frictionloss))
-#             axForDraw.set_ylim(0, 180)
-# #
-#             # plt.ylabel('chasing subtlety')
-#             drawPerformanceLine(group, axForDraw)
-#             # trainStepLevels = statisticsDf.index.get_level_values('trainSteps').values
-#             # axForDraw.plot(trainStepLevels, [1.18]*len(trainStepLevels), label='mctsTrainData')
-#             plotCounter += 1
-#     plt.suptitle('chasing subtlety')
-
-#     plt.legend(loc='best')
-#     plt.show()
 if __name__ == '__main__':
     main()

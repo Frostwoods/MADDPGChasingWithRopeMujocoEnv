@@ -167,9 +167,9 @@ def main():
     damping = 0.5
     frictionloss = 1.0
     masterForce = 1.0
-    killZone = 4.0
+    killZone = 2.0
     ropePunishWeight = 0.3
-    ropeLength = 0.09
+    ropeLength = 0.06
     masterMass = 1.0
     distractorNoise = 0.0
 
@@ -214,14 +214,14 @@ def main():
     loadTrajectoriesFromDf = lambda df: loadTrajectories(readParametersFromDf(df))
     
     tragetAgentsId = [0,1]
-    measurementFunction = lambda trajectory: calculateDistance(trajectory,tragetAgentsId)
+    measurementFunction = lambda trajectory: calculateChasingSubtlety(trajectory,tragetAgentsId)
     computeStatistics = ComputeStatistics(loadTrajectoriesFromDf, measurementFunction)
     statisticsDf = toSplitFrame.groupby(levelNames).apply(computeStatistics)
     statisticsDf_ = statisticsDf.reset_index()
     dfwolf_sheep = statisticsDf_.groupby('offset').mean()
 
-    tragetAgentsId2 = [2,1]
-    measurementFunction2 = lambda trajectory: calculateDistance(trajectory,tragetAgentsId2)
+    tragetAgentsId2 = [2,0]
+    measurementFunction2 = lambda trajectory: calculateChasingSubtlety(trajectory,tragetAgentsId2)
     computeStatistics2 = ComputeStatistics(loadTrajectoriesFromDf, measurementFunction2)
     statisticsDf2 = toSplitFrame.groupby(levelNames).apply(computeStatistics2)
     statisticsDf2_ = statisticsDf2.reset_index()
@@ -230,7 +230,7 @@ def main():
 
 
     tragetAgentsId3 = [2,1]
-    measurementFunction3 = lambda trajectory: calculateDistance(trajectory,tragetAgentsId3)
+    measurementFunction3 = lambda trajectory: calculateChasingSubtlety(trajectory,tragetAgentsId3)
     computeStatistics = ComputeStatistics(loadTrajectoriesFromDf, measurementFunction3)
     statisticsDf3 = toSplitFrame.groupby(levelNames).apply(computeStatistics)
     statisticsDf3_ = statisticsDf3.reset_index()
@@ -242,12 +242,12 @@ def main():
     from matplotlib import pyplot as plt
     fig = plt.figure()
     axForDraw = fig.add_subplot(1,1,1)
-    dfwolf_sheep.plot(ax=axForDraw, label='wolf-sheep', y='mean',marker='o',color='green', logx=False)
-    dfwolf_master.plot(ax=axForDraw, label='master-wolf', y='mean',marker='o',color='red', logx=False)
-    dfsheep_master.plot(ax=axForDraw, label='master-sheep', y='mean',marker='o',color='blue', logx=False)
-    axForDraw.set_ylim(0, 2)
+    dfwolf_sheep.plot(ax=axForDraw, label='wolf->sheep', y='mean',marker='o',color='green', logx=False)
+    dfwolf_master.plot(ax=axForDraw, label='master->wolf', y='mean',marker='o',color='red', logx=False)
+    dfsheep_master.plot(ax=axForDraw, label='master->sheep', y='mean',marker='o',color='blue', logx=False)
+    axForDraw.set_ylim(30, 120)
     # plt.suptitle('sheepCrossLeashPerTraj\n50trajs\nropePunishWeight={}killZone={}ropeLength={}'.format(ropePunishWeight,killZone,ropeLength))
-    plt.suptitle('AverageDistance\nmasterMass={}killZone={}ropeLength={}'.format(masterMass,killZone,ropeLength))
+    plt.suptitle('AverageChasingSubtlety\nmasterMass={}killZone={}ropeLength={}'.format(masterMass,killZone,ropeLength))
 
     plt.legend(loc='best')
     plt.show()
