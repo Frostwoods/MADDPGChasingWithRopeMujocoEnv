@@ -72,7 +72,7 @@ def generateSingleCondition(condition):
         offsetFrame = int (offset/dt)
 
         maxEpisode = 120000
-        evaluateEpisode = 120000
+        evaluateEpisode = 45000
         numWolves = 1
         numSheeps = 1
         numMasters = 1
@@ -83,7 +83,7 @@ def generateSingleCondition(condition):
         if noiseDistractor:
             distractorNoise = float(condition['distractorNoise'])
 
-        saveTraj=False
+        saveTraj=True
         saveImage=True
         visualizeMujoco=False
         visualizeTraj = False
@@ -91,7 +91,7 @@ def generateSingleCondition(condition):
 
     evalNum = 50
     maxRunningStepsToSample = 100
-    modelSaveName = 'expTrajMADDPGMujocoEnvJune'
+    modelSaveName = 'expTrajMADDPGMujocoEnvOct'
     # modelSaveName = 'expTrajMADDPGMujocoEnvWithRopeAdd2Distractors'
     print("maddpg: , saveTraj: {}, visualize: {},damping; {},frictionloss: {}".format( str(saveTraj), str(visualizeMujoco),damping,frictionloss))
     wolvesID = [0]
@@ -270,7 +270,7 @@ def generateSingleCondition(condition):
             trajectorySavePath = generateTrajectorySavePath(condition)
             saveToPickle(trajList, trajectorySavePath)
 
-            expTrajectoriesSaveDirectory = os.path.join(dataFolder, 'Exptrajectory', modelSaveName,'noiseOffsetMasterForSelectOct11')
+            expTrajectoriesSaveDirectory = os.path.join(dataFolder, 'Exptrajectory', modelSaveName,'noiseOffsetMasterForSelectOct122')
             if not os.path.exists(expTrajectoriesSaveDirectory):
                 os.makedirs(expTrajectoriesSaveDirectory)
 
@@ -308,10 +308,10 @@ def main():
     manipulatedVariables['damping'] = [0.5]
     manipulatedVariables['frictionloss'] = [1.0]
     manipulatedVariables['masterForce'] = [1.0]
-    manipulatedVariables['killZone'] = [2.0,4.0]
-    manipulatedVariables['ropePunishWeight'] = [ 0.3,0.5]
-    manipulatedVariables['ropeLength'] = [0.06] #ssr-1,Xp = 0.06; ssr-3 =0.09
-    manipulatedVariables['masterMass'] = [1.0] #ssr-1, ssr-3 = 1.0; Xp = 2.0
+    manipulatedVariables['killZone'] = [4.0]
+    manipulatedVariables['ropePunishWeight'] = [ 0.3]
+    manipulatedVariables['ropeLength'] = [0.04,0.06] #ssr-1,Xp = 0.06; ssr-3 =0.09
+    manipulatedVariables['masterMass'] = [1.0,2.0] #ssr-1, ssr-3 = 1.0; Xp = 2.0
     manipulatedVariables['offset'] =[-1.0,-0.5,0.0,0.5,1.0]    
     manipulatedVariables['distractorNoise'] = [0.0]
 
