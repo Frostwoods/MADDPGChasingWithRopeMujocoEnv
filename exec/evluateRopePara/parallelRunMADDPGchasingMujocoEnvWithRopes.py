@@ -42,7 +42,8 @@ def main():
     startTime = time.time()
     # fileName = 'runMADDPGchasingMujocoEnvWithRopes.py'
     # fileName = 'runMADDPGchasingMujocoEnvWithRopesAdd2DistractorsWithRopePunish.py'
-    fileName = 'runMADDPGchasingMujocoEnvWithRopesAdd2DistractorsWithRopePunishWithVariousWolfMass.py'
+    fileName = 'runMADDPGchasingMujocoEnvWithRopesAdd2DistractorsWithDistractKillZone.py'
+    # fileName = 'runMADDPGchasingMujocoEnvWithRopesAdd2DistractorsWithRopePunishWithVariousWolfMass.py'
     numSample = None
     numCpuToUse = 4#int(0.8 * os.cpu_count())
     excuteCodeParallel = ExcuteCodeOnConditionsParallel(fileName, numSample, numCpuToUse)
@@ -56,6 +57,7 @@ def main():
     manipulatedVariables['masterForce'] = [1.0,3.0]
     manipulatedVariables['sheepForce'] = [5.0,6.0]
     manipulatedVariables['killZone'] = [4.0]
+    manipulatedVariables['killZoneofDistractor'] = [4.0]
     manipulatedVariables['ropePunishWeight'] = [0.3]
     manipulatedVariables['ropeLength'] = [0.06] #ssr-1,Xp = 0.06; ssr-3 =0.09
     manipulatedVariables['masterMass'] = [1.0] #ssr-1, ssr-3 = 1.0; Xp = 2.0
