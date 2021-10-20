@@ -161,13 +161,14 @@ def main():
     # manipulatedVariables[''] =[1.0]# [0.0, 0.2, 0.4]
     # manipulatedVariables['']=[0.0]#[0.0, 2.0]
     # manipulatedVariables['offset'] = [int(-2),int(-1),int(0),int(1),int(2)]
-    manipulatedVariables['offset'] = [-1.0,-0.5,0.0,0.5,1.0]
-    manipulatedVariables['hideId'] = [3]
+    manipulatedVariables['offset'] = [0.0]
+    
+    manipulatedVariables['hideId'] = [2]
 
     damping = 0.5
     frictionloss = 1.0
     masterForce = 1.0
-    killZone = 2.0
+    killZone = 4.0
     ropePunishWeight = 0.3
     ropeLength = 0.06
     masterMass = 1.0
@@ -200,7 +201,7 @@ def main():
     # trajectoryDirectory= os.path.join(dataFolder,'trajectory','noiseOffsetMasterForSelect6.8')
     modelSaveName = 'expTrajMADDPGMujocoEnvOct'
     # trajectoryDirectory = os.path.join(dataFolder, 'Exptrajectory', modelSaveName,'noiseOffsetMasterForSelectOct11')
-    trajectoryDirectory = os.path.join(dataFolder, 'trajectory', 'noiseOffsetMasterForSelectOct12')
+    trajectoryDirectory = os.path.join(dataFolder, 'trajectory', 'noiseOffsetMasterForSelectOct14')
     trajectoryExtension = '.pickle'
 
     # trajectoryFixedParameters = {'evalNum':evalNum,'evaluateEpisode':evaluateEpisode}
@@ -236,7 +237,7 @@ def main():
     statisticsDf3_ = statisticsDf3.reset_index()
     dfsheep_master = statisticsDf3_.groupby('offset').mean()
 
-
+    print(dfwolf_sheep,dfwolf_master,dfsheep_master)
 
 
     from matplotlib import pyplot as plt

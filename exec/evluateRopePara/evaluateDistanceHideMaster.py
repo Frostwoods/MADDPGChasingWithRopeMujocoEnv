@@ -161,15 +161,16 @@ def main():
     # manipulatedVariables[''] =[1.0]# [0.0, 0.2, 0.4]
     # manipulatedVariables['']=[0.0]#[0.0, 2.0]
     # manipulatedVariables['offset'] = [int(-2),int(-1),int(0),int(1),int(2)]
-    manipulatedVariables['offset'] = [-1.0,-0.5,0.0,0.5,1.0]
-    manipulatedVariables['hideId'] = [3]
+    manipulatedVariables['offset'] = [0.0]
+    
+    manipulatedVariables['hideId'] = [2]
 
     damping = 0.5
     frictionloss = 1.0
     masterForce = 1.0
-    killZone = 4.0
+    killZone = 2.0
     ropePunishWeight = 0.3
-    ropeLength = 0.04
+    ropeLength = 0.09
     masterMass = 1.0
     distractorNoise = 0.0
 
@@ -177,7 +178,7 @@ def main():
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]
 
     evalNum=50
-    evaluateEpisode=45000
+    evaluateEpisode=120000
 
     # for condition in conditions:
     # #     print(condition)
@@ -200,7 +201,7 @@ def main():
     # trajectoryDirectory= os.path.join(dataFolder,'trajectory','noiseOffsetMasterForSelect6.8')
     modelSaveName = 'expTrajMADDPGMujocoEnvOct'
     # trajectoryDirectory = os.path.join(dataFolder, 'Exptrajectory', modelSaveName,'noiseOffsetMasterForSelectOct11')
-    trajectoryDirectory = os.path.join(dataFolder, 'trajectory', 'noiseOffsetMasterForSelectOct12')
+    trajectoryDirectory = os.path.join(dataFolder, 'trajectory', 'noiseOffsetMasterForSelectOct14')
     trajectoryExtension = '.pickle'
 
     # trajectoryFixedParameters = {'evalNum':evalNum,'evaluateEpisode':evaluateEpisode}
@@ -213,40 +214,62 @@ def main():
     loadTrajectories = LoadTrajectories(getTrajectorySavePath, loadFromPickle, fuzzySearchParameterNames)
     loadTrajectoriesFromDf = lambda df: loadTrajectories(readParametersFromDf(df))
     
-    tragetAgentsId = [0,1]
-    measurementFunction = lambda trajectory: calculateDistance(trajectory,tragetAgentsId)
-    computeStatistics = ComputeStatistics(loadTrajectoriesFromDf, measurementFunction)
-    statisticsDf = toSplitFrame.groupby(levelNames).apply(computeStatistics)
-    statisticsDf_ = statisticsDf.reset_index()
-    dfwolf_sheep = statisticsDf_.groupby('offset').mean()
+    def calChasingSubPair(tragetAgentsId):
+        # tragetAgentsId = [0,1]
+        measurementFunction = lambda trajectory: calculateDistance(trajectory,tragetAgentsId)
+        computeStatistics = ComputeStatistics(loadTrajectoriesFromDf, measurementFunction)
+        statisticsDf = toSplitFrame.groupby(levelNames).apply(computeStatistics)
+        statisticsDf_ = statisticsDf.reset_index()
+        dffinialPair = statisticsDf_.groupby('offset').mean()
+        return dffinialPair
+    agentIdName = ['wolf','sheep','disractor1','disractor2']
+    tragetAgentsId1 = [0,1]
+    dfwolf_sheep =  calChasingSubPair(tragetAgentsId1)  
+    tragetAgentsId2 = [0,2]
+    dfwolf_distra1 = calChasingSubPair(tragetAgentsId2) 
+    tragetAgentsId3 = [0,3]
+    dfwolf_distra2 = calChasingSubPair(tragetAgentsId3) 
 
-    tragetAgentsId2 = [2,0]
-    measurementFunction2 = lambda trajectory: calculateDistance(trajectory,tragetAgentsId2)
-    computeStatistics2 = ComputeStatistics(loadTrajectoriesFromDf, measurementFunction2)
-    statisticsDf2 = toSplitFrame.groupby(levelNames).apply(computeStatistics2)
-    statisticsDf2_ = statisticsDf2.reset_index()
-    dfwolf_master = statisticsDf2_.groupby('offset').mean()
+    tragetAgentsId4 = [1,2]
+    dfsheep_distra1 = calChasingSubPair(tragetAgentsId4) 
+    tragetAgentsId5 = [1,3]
+    dfsheep_distra2 = calChasingSubPair(tragetAgentsId5) 
 
+    lableList = ['{}->{}'.format(agentIdName[a],agentIdName[b]) for a,b in [tragetAgentsId1,tragetAgentsId2,tragetAgentsId3,tragetAgentsId4,tragetAgentsId5]]
 
+    # measurementFunction2 = lambda trajectory: calculateChasingSubtlety(trajectory,tragetAgentsId2)
+    # computeStatistics2 = ComputeStatistics(loadTrajectoriesFromDf, measurementFunction2)
+    # statisticsDf2 = toSplitFrame.groupby(levelNames).apply(computeStatistics2)
+    # statisticsDf2_ = statisticsDf2.reset_index()
+    # dfwolf_distra1 = statisticsDf2_.groupby('offset').mean()
 
-    tragetAgentsId3 = [2,1]
-    measurementFunction3 = lambda trajectory: calculateDistance(trajectory,tragetAgentsId3)
-    computeStatistics = ComputeStatistics(loadTrajectoriesFromDf, measurementFunction3)
-    statisticsDf3 = toSplitFrame.groupby(levelNames).apply(computeStatistics)
-    statisticsDf3_ = statisticsDf3.reset_index()
-    dfsheep_master = statisticsDf3_.groupby('offset').mean()
+    # tragetAgentsId3 = [1,2]
+    # measurementFunction3 = lambda trajectory: calculateChasingSubtlety(trajectory,tragetAgentsId3)
+    # computeStatistics = ComputeStatistics(loadTrajectoriesFromDf, measurementFunction3)
+    # statisticsDf3 = toSplitFrame.groupby(levelNames).apply(computeStatistics)
+    # statisticsDf3_ = statisticsDf3.reset_index()
+    # dfsheep_distra1 = statisticsDf3_.groupby('offset').mean()
 
-
+    # print(dfwolf_sheep,dfwolf_distra1,dfsheep_distra1,dfwolf_distra2,dfsheep_distra2)
 
 
     from matplotlib import pyplot as plt
     fig = plt.figure()
     axForDraw = fig.add_subplot(1,1,1)
-    dfwolf_sheep.plot(ax=axForDraw, label='wolf-sheep', y='mean',marker='o',color='green', logx=False)
-    dfwolf_master.plot(ax=axForDraw, label='master-wolf', y='mean',marker='o',color='red', logx=False)
-    dfsheep_master.plot(ax=axForDraw, label='master-sheep', y='mean',marker='o',color='blue', logx=False)
+    # dfwolf_sheep.plot(ax=axForDraw, label='wolf->sheep', y='mean',marker='o',color='green', logx=False)
+    # dfwolf_distra1.plot(ax=axForDraw, label='wolf->distra1', y='mean',marker='o',color='red', logx=False)
+    # dfsheep_distra1.plot(ax=axForDraw, label='sheep->distra1', y='mean',marker='o',color='blue', logx=False)
+    # dfwolf_distra2.plot(ax=axForDraw, label='wolf->distra2', y='mean',marker='o',color='brown', logx=False)
+    # dfsheep_distra2.plot(ax=axForDraw, label='sheep->distra2', y='mean',marker='o',color='orange', logx=False)
+    data = [dfwolf_sheep,dfwolf_distra1,dfwolf_distra2,dfsheep_distra1,dfsheep_distra2]
+    # print(dfwolf_sheep['offset'=0.0]['mean'])
+    print(dfwolf_sheep.values)
+    toDrawData = [df.values[0][1] for df in data]
+    plt.bar(range(len(toDrawData)),toDrawData,tick_label=lableList)
     axForDraw.set_ylim(0, 2)
     # plt.suptitle('sheepCrossLeashPerTraj\n50trajs\nropePunishWeight={}killZone={}ropeLength={}'.format(ropePunishWeight,killZone,ropeLength))
+    # plt.suptitle('AverageChasingSubtlety\nmasterMass={}killZone={}ropeLength={}'.format(masterMass,killZone,ropeLength))
+    # plt.suptitle('AverageDistance\nmasterMass={}killZone={}ropeLength={}'.format(masterMass,killZone,ropeLength))
     plt.suptitle('AverageDistance\nmasterMass={}killZone={}ropeLength={}'.format(masterMass,killZone,ropeLength))
 
     plt.legend(loc='best')
