@@ -66,7 +66,7 @@ def main():
         ropePunishWeight = float(condition['ropePunishWeight'])
         ropeLength = float(condition['ropeLength'])
         masterMass = float(condition['masterMass'])
-        masterRewardRange = float(condition['masterRewardRange'])
+        masterPunishRange = float(condition['masterPunishRange'])
 
         maxTimeStep = 25
         visualize=False
@@ -117,8 +117,8 @@ def main():
 
     rewardDistractor1 = RewardSheep(wolvesID+sheepsID+masterID+[distractorID[1]], [distractorID[0]], entitiesSizeList, getPosFromAgentState, isCollisionForDistractor,punishForOutOfBound)
     rewardDistractor2 = RewardSheep(wolvesID+sheepsID+masterID+[distractorID[0]], [distractorID[1]], entitiesSizeList, getPosFromAgentState, isCollisionForDistractor,punishForOutOfBound)
-    masterPunishForOutOfBound=PunishForOutOfBoundVarRange(masterRewardRange)
-    rewardMaster= RewardMaster(, masterID, entitiesSizeList, getPosFromAgentState, isCollision, masterPunishForOutOfBound,collisionPunishment=0)
+    masterPunishForOutOfBound=PunishForOutOfBoundVarRange(masterPunishRange)
+    rewardMaster= RewardMaster(masterID, entitiesSizeList, getPosFromAgentState, isCollision, masterPunishForOutOfBound,collisionPunishment=0)
 
 
     rewardFunc = lambda state, action, nextState: \
