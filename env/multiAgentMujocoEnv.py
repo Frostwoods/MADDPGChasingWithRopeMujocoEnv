@@ -182,6 +182,24 @@ class PunishForOutOfBound:
             return (x - 0.9) * 10
         return min(np.exp(2 * x - 2), 10)
 
+class PunishForOutOfBoundVarRange:
+    def __init__(self,punishRange):
+        self.physicsDim = 2
+        self.punishRange = punishRange
+
+    def __call__(self, agentPos):
+        punishment = 0
+        for i in range(self.physicsDim):
+            x = abs(agentPos[i])
+            punishment += self.bound(x)
+        return punishment
+
+    def bound(self, x):
+        if x /self.punishRange< 0.9:
+            return 0
+        if x /self.punishRange < 1.0:
+            return (x/self.punishRange - 0.9) * 10
+        return min(np.exp(2 * x/self.punishRange - 2), 10)
 
 class RewardSheep:
     def __init__(self, wolvesID, sheepsID, entitiesSizeList, getPosFromState, isCollision, punishForOutOfBound,
@@ -211,7 +229,28 @@ class RewardSheep:
             reward.append(sheepReward)
 
         return reward
+class RewardMaster:
+    def __init__(self, masterID, entitiesSizeList, getPosFromState, isCollision, punishForOutOfBound,
+                 collisionPunishment=0):
+        self.getPosFromState = getPosFromState
+        self.entitiesSizeList = entitiesSizeList
+        self.masterID = masterID
+        self.isCollision = isCollision
+        self.collisionPunishment = collisionPunishment
+        self.punishForOutOfBound = punishForOutOfBound
 
+    def __call__(self, state, action, nextState):  # state, action not used
+        reward = []
+        for masterID in self.masterID:
+            masterReward = 0
+            masterNextState = nextState[masterID]
+            masterNextPos = self.getPosFromState(masterNextState)
+
+            masterReward -= self.punishForOutOfBound(masterNextPos)
+         
+            reward.append(masterReward)
+
+        return reward
 
 class ResetFixWithoutXPos:
     def __init__(self, simulation, qPosInit, qVelInit, numAgent, numBlock):

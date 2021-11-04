@@ -42,8 +42,9 @@ def main():
     startTime = time.time()
     # fileName = 'runMADDPGchasingMujocoEnvWithRopes.py'
     # fileName = 'runMADDPGchasingMujocoEnvWithRopesAdd2DistractorsWithRopePunish.py'
-    fileName = 'runMADDPGchasingMujocoEnvWithRopesAdd2DistractorsWithDistractKillZone.py'
+    # fileName = 'runMADDPGchasingMujocoEnvWithRopesAdd2DistractorsWithDistractKillZone.py'
     # fileName = 'runMADDPGchasingMujocoEnvWithRopesAdd2DistractorsWithRopePunishWithVariousWolfMass.py'
+    fileName ='runMADDPGchasingMujocoEnvWithRopeChangeMasterReward.py'
     numSample = None
     numCpuToUse = 4#int(0.8 * os.cpu_count())
     excuteCodeParallel = ExcuteCodeOnConditionsParallel(fileName, numSample, numCpuToUse)
@@ -54,14 +55,15 @@ def main():
 
     manipulatedVariables['damping'] = [0.5]
     manipulatedVariables['frictionloss'] = [1.0]
-    manipulatedVariables['masterForce'] = [1.0,3.0]
-    manipulatedVariables['sheepForce'] = [5.0,6.0]
+    manipulatedVariables['masterForce'] = [3.0,7.0]
+    # manipulatedVariables['sheepForce'] = [5.0]
     manipulatedVariables['killZone'] = [4.0]
-    manipulatedVariables['killZoneofDistractor'] = [4.0]
+    manipulatedVariables['killZoneofDistractor'] = [0.0]
     manipulatedVariables['ropePunishWeight'] = [0.3]
     manipulatedVariables['ropeLength'] = [0.06] #ssr-1,Xp = 0.06; ssr-3 =0.09
     manipulatedVariables['masterMass'] = [1.0] #ssr-1, ssr-3 = 1.0; Xp = 2.0
-    manipulatedVariables['wolfMass'] = [3.0] #ssr-1, ssr-3 = 1.0; Xp = 2.0
+    manipulatedVariables['masterPunishRange'] = [0.3,0.6] #ssr-1, ssr-3 = 1.0; Xp = 2.0
+    # manipulatedVariables['wolfMass'] = [3.0/] #ssr-1, ssr-3 = 1.0; Xp = 2.0
 
     productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
     conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]

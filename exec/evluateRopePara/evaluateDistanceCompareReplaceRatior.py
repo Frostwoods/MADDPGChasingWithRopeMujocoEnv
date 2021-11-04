@@ -73,6 +73,7 @@ class LoadTrajectories:
         for fileName in filesNames:
             oneFileTrajectories = self.loadFromPickle(fileName)
             mergedTrajectories.extend(oneFileTrajectories)
+        print(len(mergedTrajectories),filesNames)
         return mergedTrajectories
 
 def calculateWolfSheepChasingSubtlety(traj):
@@ -150,52 +151,43 @@ class ComputeStatistics:
         return pd.Series({'mean': measurementMean, 'std': measurementStd})
 
 def main():
-    # manipulatedVariables = OrderedDict()
-    # manipulatedVariables['damping'] = [0.0,1.0]#[0.0, 1.0]
-    # manipulatedVariables['frictionloss'] =[0.0,0.2]# [0.0, 0.2, 0.4]
-    # manipulatedVariables['masterForce']=[0.0,1.0]#[0.0, 2.0]
-
+ 
 
     manipulatedVariables = OrderedDict()
-    # manipulatedVariables['damping'] = [0.0,0.5]#[0.0, 1.0]
-    # manipulatedVariables['frictionloss'] =[0.0,1.0]# [0.0, 0.2, 0.4] 
-    manipulatedVariables['ropeLength'] = [0.06,0.09,0.12,0.15]#[0.0, 1.0]
-    manipulatedVariables['masterMass'] =[1.0]# [0.0, 0.2, 0.4]
-    # manipulatedVariables[''] = [0.5]#[0.0, 1.0]
+    manipulatedVariables['damping'] = [0.0,0.5]#[0.0, 1.0]
+    manipulatedVariables['frictionloss'] =[0.0,1.0]# [0.0, 0.2, 0.4] 
+    manipulatedVariables['ropeLength'] = [0.06]# [0.06,0.09]#[0.0, 1.0]
+    manipulatedVariables['killZone'] = [4.5]#[0.0, 1.0]
+    manipulatedVariables['killZoneofDistractor'] = [0.0]#[0.0, 1.0]
+    # manipulatedVariables['wolfMass'] =[2.0]# [0.0, 0.2, 0.4]
+    # manipulatedVariables['distractorNoise'] = [0.0,3.0,6.0,9.0]#[0.0, 1.0]
     # manipulatedVariables[''] =[1.0]# [0.0, 0.2, 0.4]
     # manipulatedVariables['']=[0.0]#[0.0, 2.0]
     # manipulatedVariables['offset'] = [int(-2),int(-1),int(0),int(1),int(2)]
     manipulatedVariables['offset'] = [0.0]
     
-    manipulatedVariables['hideId'] = [2,3]
+    manipulatedVariables['hideId'] = [6]
+
     allAgentNames =  ['wolf','sheep','master','disractor1','disractor2']
     agentIdName = allAgentNames.copy()
-    del(agentIdName[manipulatedVariables['hideId'][0]])
-    damping = 0.5
-    frictionloss = 1.0
-    masterForce = 1.0
+    # del(agentIdName[manipulatedVariables['hideId'][0]])
+    # damping = 0.5
+    # frictionloss = 1.0
+    masterForce = 2.0
     sheepForce = 5.0
     # wolfMass = 1.0
 
     killZone = 2.0
     ropePunishWeight = 0.3
     # ropeLength = 0.12
-    # masterMass = 2.0
-    distractorNoise = 3.0
+    masterMass = 2.0
+    distractorNoise = 0.0
 
-    productedValues = it.product(*[[(key, value) for value in values] for key, values in manipulatedVariables.items()])
-    conditions = [dict(list(specificValueParameter)) for specificValueParameter in productedValues]
-
+    folderNameList = ['masterForceAndMass','masterAndWolfMass']
+    folderName = folderNameList[0]
     evalNum=50
     evaluateEpisode=60000
 
-    # for condition in conditions:
-    # #     print(condition)
-    #     # generateSingleCondition(condition)
-    #     try:
-    #         generateSingleCondition(condition)
-    #     except:
-    #         continue
 
 
     levelNames = list(manipulatedVariables.keys())
@@ -208,15 +200,19 @@ def main():
 
     dataFolder = os.path.join(dirName, '..','..', 'data')
     # trajectoryDirectory= os.path.join(dataFolder,'trajectory','noiseOffsetMasterForSelect6.8')
-    modelSaveName = 'expTrajMADDPGMujocoEnvOct'
     # trajectoryDirectory = os.path.join(dataFolder, 'Exptrajectory', modelSaveName,'noiseOffsetMasterForSelectOct11')
     # trajectoryDirectory = os.path.join(dataFolder, 'trajectory', 'noiseOffsetMasterForSelectOct19len0.12')
-    trajectoryDirectory = os.path.join(dataFolder, 'trajectory', 'noiseOffsetMasterForSelectOctVarRopeLength')
+    # trajectoryDirectory = os.path.join(dataFolder, 'trajectory', 'noiseOffsetMasterForSelectOctVarRopeLength')
+    # trajectoryDirectory = os.path.join(dataFolder, 'trajectory', 'noiseOffsetMasterForSelectOct20VarNoise')
+    # trajectoryDirectory = os.path.join(dataFolder, 'trajectory', 'noiseOffsetMasterForSelectOct21')
+    trajectoryDirectory = os.path.join(dataFolder, 'trajectory', 'Oct26',folderName)
     trajectoryExtension = '.pickle'
 
 
     # trajectoryFixedParameters = {'evalNum':evalNum,'evaluateEpisode':evaluateEpisode,'masterForce':masterForce,'distractorNoise':distractorNoise,'ropePunishWeight':ropePunishWeight,'killZone':killZone,'masterMass':masterMass,'ropeLength':ropeLength}
-    trajectoryFixedParameters = {'evalNum':evalNum,'evaluateEpisode':evaluateEpisode,'damping':damping,'frictionloss':frictionloss,'masterForce':masterForce,'distractorNoise':distractorNoise,'ropePunishWeight':ropePunishWeight,'killZone':killZone}
+    # trajectoryFixedParameters = {'evalNum':evalNum,'evaluateEpisode':evaluateEpisode,'damping':damping,'frictionloss':frictionloss,'masterForce':masterForce,'distractorNoise':distractorNoise,'ropePunishWeight':ropePunishWeight,'killZone':killZone}
+    # trajectoryFixedParameters = {'evalNum':evalNum,'evaluateEpisode':evaluateEpisode,'damping':damping,'frictionloss':frictionloss,'masterForce':masterForce,'ropePunishWeight':ropePunishWeight,'masterMass':masterMass,'distractorNoise':distractorNoise}
+    trajectoryFixedParameters = {'evalNum':evalNum,'evaluateEpisode':evaluateEpisode,'masterForce':masterForce,'ropePunishWeight':ropePunishWeight,'masterMass':masterMass,'distractorNoise':distractorNoise}
     # trajectoryFixedParameters = {'evalNum':evalNum,'evaluateEpisode':evaluateEpisode,'damping':damping,'frictionloss':frictionloss,'masterForce':masterForce,'distractorNoise':distractorNoise,'ropePunishWeight':ropePunishWeight,'killZone':killZone,'masterMass':masterMass,'ropeLength':ropeLength}
     # trajectoryFixedParameters = {'evalNum':evalNum,'evaluateEpisode':evaluateEpisode,'damping':damping,'frictionloss':frictionloss,'masterForce':masterForce,'distractorNoise':distractorNoise,'ropePunishWeight':ropePunishWeight,'killZone':killZone,'masterMass':masterMass,'ropeLength':ropeLength,'wolfMass':wolfMass,'sheepForce':sheepForce}
 
@@ -226,32 +222,33 @@ def main():
     loadTrajectories = LoadTrajectories(getTrajectorySavePath, loadFromPickle, fuzzySearchParameterNames)
     loadTrajectoriesFromDf = lambda df: loadTrajectories(readParametersFromDf(df))
     
-    def calChasingSubPair(tragetAgentsId):
-        # tragetAgentsId = [0,1]
-        
-        # measurementFunction = lambda trajectory: calculateDistance(trajectory,tragetAgentsId)
+    def calChasingSubPair(tragetAgentsId):  
         measurementFunction = lambda trajectory: calculateChasingSubtlety(trajectory,tragetAgentsId)
+        # measurementFunction = lambda trajectory: calculateDistance(trajectory,tragetAgentsId)
         computeStatistics = ComputeStatistics(loadTrajectoriesFromDf, measurementFunction)
-        # csvfilePath = os.path.join(trajectoryDirectory,'DistarnceRopeLenth=0.12.csv')
-        # csvfilePath = os.path.join(trajectoryDirectory,'SubtletyRopeLenth=0.12.csv')
-        # csvfilePath = os.path.join(trajectoryDirectory,'DistanceVarLength.csv')
-        csvfilePath = os.path.join(trajectoryDirectory,'SubtletyVarLength.csv')
         statisticsDf = toSplitFrame.groupby(levelNames).apply(computeStatistics)
-        print(statisticsDf)
-        # print(statisticsDf)
-        statisticsDf_ = statisticsDf.reset_index()
-        statisticsDf_.to_csv(csvfilePath)
-        print(statisticsDf_)
 
-        dffinialPair = statisticsDf_.groupby('offset').mean()
-        return dffinialPair
-    # totestPair={2:[1],3:[2,0]} #master wolf(hide3) distrac1 wolf()
-    # evlueatePairs = [[0,1], [0,2],[0,3],[1,2],[1,3]]#for hide Master
-    # evlueatePairs = [[0,1], [2,1],[2,0],[0,3],[1,3],[2,3]]#for hide distractor
-    evlueatePairs = [[2,0]]#for hide distractor
+        statisticsDf_ = statisticsDf.reset_index()
+
+        statisticsDf_['{}->{}'.format(agentIdName[tragetAgentsId[0]],agentIdName[tragetAgentsId[1]])] =statisticsDf_.loc[:,'mean']
+
+        print(statisticsDf_)
+        return statisticsDf_
+
+    evlueatePairs = [[0,1],[2,0],[2,3]]#for hide distractor
     
     
     data = [calChasingSubPair(Ids) for Ids in evlueatePairs]
+    # df = data[0].join(data[1],on=['ropeLength','distractorNoise','offset','hideId'])
+    tomergeKeys = list(manipulatedVariables.keys())
+    df=pd.merge(data[0],data[1],on=tomergeKeys)
+    df2 = pd.merge(df,data[2],on=tomergeKeys)
+    print(df)
+    csvfilePath = os.path.join(trajectoryDirectory,'{}SubtletyMasterForce.csv'.format(folderName))
+    # csvfilePath = os.path.join(trajectoryDirectory,'{}Distance.csv'.format(folderName))
+    df2.dropna(axis=0)
+    print(df2)
+    df2.to_csv(csvfilePath)
     lableList = ['{}->{}'.format(agentIdName[a],agentIdName[b]) for a,b in evlueatePairs]
 
     # tragetAgentsId1 = [0,1]
@@ -295,8 +292,11 @@ def main():
     # data = [dfwolf_sheep,dfwolf_distra1,dfwolf_distra2,dfsheep_distra1,dfsheep_distra2]
     # print(dfwolf_sheep['offset'=0.0]['mean'])
     # print(dfwolf_sheep.values)
-    toDrawData = [df.values[0][1] for df in data]
-    plt.bar(range(len(toDrawData)),toDrawData,tick_label=lableList)
+    toDrawData = [df.values[0][1]+0.5 for df in data]
+    toDrawData2 = [df.values[0][1]+1.5 for df in data]
+
+    plt.bar(range(len(toDrawData)),toDrawData,tick_label=lableList,color='red')
+    plt.bar(range(len(toDrawData)),toDrawData2,bottom=toDrawData,tick_label=lableList,color='green')
     
     axForDraw.set_ylim(0, 2)
     # axForDraw.set_ylim(30, 120)

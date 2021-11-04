@@ -18,8 +18,7 @@ from src.maddpg.trainer.myMADDPG import BuildMADDPGModels, TrainCritic, TrainAct
 from src.RLframework.RLrun_MultiAgent import UpdateParameters, SampleOneStep, SampleFromMemory,\
     RunTimeStep, RunEpisode, RunAlgorithm, getBuffer, SaveModel, StartLearn
 from src.functionTools.loadSaveModel import saveVariables
-from env.multiAgentMujocoEnv import RewardSheep, RewardWolf, Observe, IsCollision, getPosFromAgentState, \
-    getVelFromAgentState,PunishForOutOfBound,ReshapeAction, TransitionFunctionWithoutXPos, ResetUniformWithoutXPosForLeashed
+from env.multiAgentMujocoEnv import RewardSheep, RewardWolf,RewardMaster, Observe, IsCollision, getPosFromAgentState,getVelFromAgentState,PunishForOutOfBound,PunishForOutOfBoundVarRange,ReshapeAction, TransitionFunctionWithoutXPos, ResetUniformWithoutXPosForLeashed
 from src.functionTools.editEnvXml import transferNumberListToStr,MakePropertyList,changeJointProperty
 
 
@@ -67,6 +66,7 @@ def main():
         ropePunishWeight = float(condition['ropePunishWeight'])
         ropeLength = float(condition['ropeLength'])
         masterMass = float(condition['masterMass'])
+        masterRewardRange = float(condition['masterRewardRange'])
 
         maxTimeStep = 25
         visualize=False
@@ -117,8 +117,8 @@ def main():
 
     rewardDistractor1 = RewardSheep(wolvesID+sheepsID+masterID+[distractorID[1]], [distractorID[0]], entitiesSizeList, getPosFromAgentState, isCollisionForDistractor,punishForOutOfBound)
     rewardDistractor2 = RewardSheep(wolvesID+sheepsID+masterID+[distractorID[0]], [distractorID[1]], entitiesSizeList, getPosFromAgentState, isCollisionForDistractor,punishForOutOfBound)
-
-    rewardMaster= lambda state, action, nextState: [-reward  for reward in rewardWolf(state, action, nextState)]
+    masterPunishForOutOfBound=PunishForOutOfBoundVarRange(masterRewardRange)
+    rewardMaster= RewardMaster(, masterID, entitiesSizeList, getPosFromAgentState, isCollision, masterPunishForOutOfBound,collisionPunishment=0)
 
 
     rewardFunc = lambda state, action, nextState: \
