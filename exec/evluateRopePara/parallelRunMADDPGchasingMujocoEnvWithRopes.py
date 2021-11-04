@@ -61,7 +61,7 @@ def main():
     manipulatedVariables['killZoneofDistractor'] = [0.0]
     manipulatedVariables['ropePunishWeight'] = [0.3]
     manipulatedVariables['ropeLength'] = [0.06] #ssr-1,Xp = 0.06; ssr-3 =0.09
-    manipulatedVariables['masterMass'] = [1.0] #ssr-1, ssr-3 = 1.0; Xp = 2.0
+    manipulatedVariables['masterMass'] = [3.0,5.0,7.0] #ssr-1, ssr-3 = 1.0; Xp = 2.0
     manipulatedVariables['masterPunishRange'] = [0.3,0.6] #ssr-1, ssr-3 = 1.0; Xp = 2.0
     # manipulatedVariables['wolfMass'] = [3.0/] #ssr-1, ssr-3 = 1.0; Xp = 2.0
 
