@@ -43,25 +43,26 @@ minibatchSize = 1024
 def main():
     debug = 1
     if debug:
-        chasePairList = [[2,1],[2,1]]
-        # chasePairIdList = 
-        chasePairIdList = [[[0,1],[4]],[[2,3],[5]]]
-        
+        chasePairList = [[2, 1], [1, 1]]
+        # chasePairIdList =
+        chasePairIdList = [[[0, 1], [3]], [[2], [4]]]
+
         numWolves = sum([pair[0] for pair in chasePairList])
         numSheeps = sum([pair[1] for pair in chasePairList])
-        numWolves = 4
-        numSheeps = 2
-        numDistractiors = 0
+
+        # numWolves = 4
+        # numSheeps = 2
+        numDistractors = 1
         numBlocks = 0
 
         saveAllmodels = 0
         maxTimeStep = 75
         sheepSpeedMultiplier = 1.3
         individualRewardWolf = 0
-        killZoneRatio=1
-        sizeRatio=1
-        maxRange =1.0
-
+        killZoneRatio = 1
+        sizeRatio = 1
+        maxRange = 1.0
+        sheepWolfForceRatio = 1.3
         wolfForce = 1
         sheepForce = wolfForce * sheepWolfForceRatio
 
@@ -70,7 +71,6 @@ def main():
         costActionRatio = 0  # float(condition['costActionRatio'])
 
         saveAllmodels = 1
-
 
     else:
         print(sys.argv)
@@ -99,29 +99,30 @@ def main():
 
     dataFolder = os.path.join(dirName, '..', '..', 'data')
     mainModelFolder = os.path.join(dataFolder, 'model')
-    modelFolder = os.path.join(mainModelFolder, 'GroupChasing', 'indvidulReward={}_sheepWolfForceRatio={}_killZoneRatio={}'.format(individualRewardWolf, sheepWolfForceRatio, killZoneRatio), '{} wolves, {} sheep,{}distractors, {} blocks'.format(numWolves, numSheeps,numDistractiors, numBlocks))
+    modelFolder = os.path.join(mainModelFolder, 'GroupChasing', 'indvidulReward={}_sheepWolfForceRatio={}_killZoneRatio={}'.format(individualRewardWolf, sheepWolfForceRatio, killZoneRatio), '{} wolves, {} sheep,{}distractors, {} blocks'.format(numWolves, numSheeps, numDistractors, numBlocks))
 
     if not os.path.exists(modelFolder):
         os.makedirs(modelFolder)
 
-    numAgents = numWolves + numSheeps + numDistractiors
+    numAgents = numWolves + numSheeps + numDistractors
     numEntities = numAgents + numBlocks
     wolvesID = list(range(numWolves))
     sheepsID = list(range(numWolves, numWolves + numSheeps))
-    distractiorsID = list(range(numWolves + numSheeps, numAgents))
+    distractorsID = list(range(numWolves + numSheeps, numAgents))
     blocksID = list(range(numAgents, numEntities))
 
     wolfSize = 0.05 * sizeRatio
     sheepSize = 0.05 * sizeRatio
+    distractorSize = 0.05 * sizeRatio
     blockSize = 0.0
-    entitiesSizeList = [wolfSize] * numWolves + [sheepSize] * numSheeps + [blockSize] * numBlocks
+    entitiesSizeList = [wolfSize] * numWolves + [sheepSize] * numSheeps + [distractorSize] * numDistractors + [blockSize] * numBlocks
 
     wolfMaxSpeed = 1  # !!
     blockMaxSpeed = None
     sheepMaxSpeedOriginal = 1
     sheepMaxSpeed = sheepMaxSpeedOriginal * sheepSpeedMultiplier
 
-    entityMaxSpeedList = [wolfMaxSpeed] * numWolves + [sheepMaxSpeed] * numSheeps + [blockMaxSpeed] * numBlocks
+    entityMaxSpeedList = [wolfMaxSpeed] * numWolves + [sheepMaxSpeed] * numSheeps + [sheepMaxSpeed] * numDistractors + [blockMaxSpeed] * numBlocks
     entitiesMovableList = [True] * numAgents + [False] * numBlocks
     massList = [1.0] * numEntities
 
@@ -132,48 +133,57 @@ def main():
     punishForOutOfBound = PunishForOutOfBound()
     rewardSheepList = []
     rewardWolfList = []
-    
+
     for chassePair in chasePairIdList:
         ingroupWolvesID = chassePair[0]
         ingroupSheepID = chassePair[1]
         rewardIngroupSheep = RewardSheep(ingroupWolvesID, ingroupSheepID, entitiesSizeList, getPosFromAgentState, isCollision, punishForOutOfBound, collisionPunishment=collisionReward)  # TODO collisionReward = collisionPunishment
 
         rewardIngroupWolf = RewardWolf(ingroupWolvesID, ingroupSheepID, entitiesSizeList, isCollision, collisionReward, individualRewardWolf)
-        rewardSheepList.append (rewardIngroupSheep)
-        rewardWolfList.append (rewardIngroupWolf)
+        rewardSheepList.append(rewardIngroupSheep)
+        rewardWolfList.append(rewardIngroupWolf)
+        # rewardSheepList = rewardSheepList + rewardIngroupSheep
+        # rewardWolfList = rewardWolfList + rewardIngroupWolf
 
-    if numDistractiors > 0:
-        rewardDistractiors =  RewardSheep(wolvesID+sheepsID, distractiorsID, entitiesSizeList, getPosFromAgentState, isCollision, punishForOutOfBound, collisionPunishment=collisionReward)
-        
+    if numDistractors > 0:
+        rewardDistractiors = RewardSheep(wolvesID + sheepsID, distractorsID, entitiesSizeList, getPosFromAgentState, isCollision, punishForOutOfBound, collisionPunishment=collisionReward)
+
     def rewardWolf(state, action, nextState):
-        return list([singleReward(state, action, nextState) for singleReward in rewardWolfList])
+
+        return [singleReward(state, action, nextState) for singleReward in rewardWolfList]
 
     def rewardSheep(state, action, nextState):
-        return list([singleReward(state, action, nextState) for singleReward in rewardSheepList])
+        return [singleReward(state, action, nextState) for singleReward in rewardSheepList]
     # reshapeAction = ReshapeAction()
     # getActionCost = GetActionCost(costActionRatio, reshapeAction, individualCost=True)
     # getWolvesAction = lambda action: [action[wolfID] for wolfID in wolvesID]
     # rewardWolfWithActionCost = lambda state, action, nextState: np.array(rewardWolf(state, action, nextState)) - np.array(getActionCost(getWolvesAction(action)))
 
     # rewardWolf = RewardWolf(wolvesID, sheepsID, entitiesSizeList, isCollision)
-    def rewardFunc(state, action, nextState): 
-        
-        if numDistractiors > 0:
-            return list(rewardWolf(state, action, nextState)) + list(rewardSheep(state, action, nextState))+ list(rewardDistractiors(state, action, nextState))
+    def rewardFunc(state, action, nextState):
 
-        else :
-            return  list(rewardWolf(state, action, nextState)) + list(rewardSheep(state, action, nextState))
+        if numDistractors > 0:
+            # allreward = list(rewardWolf(state, action, nextState)) + list(rewardSheep(state, action, nextState)) + list(rewardDistractiors(state, action, nextState))
+            allreward = []
+            [allreward.extend(reward) if isinstance(reward, list) else allreward.append(reward) for reward in list(rewardWolf(state, action, nextState)) + list(rewardSheep(state, action, nextState)) + list(rewardDistractiors(state, action, nextState))]
 
+            return allreward
+
+        else:
+            # print(list(rewardWolf(state, action, nextState)) + list(rewardSheep(state, action, nextState)))
+            allreward = []
+            [allreward.extend(reward) if isinstance(reward, list) else allreward.append(reward) for reward in list(rewardWolf(state, action, nextState)) + list(rewardSheep(state, action, nextState))]
+            return allreward
     # minDistanceForReborn = 10
     # numPlayers = 2
     # gridSize = 60
     # reset0 = ResetMultiAgentNewtonChasing(gridSize, numWolves, minDistanceForReborn)
     reset0 = ResetMultiAgentChasingWithVariousSheep(numWolves, numBlocks, maxRange)
 
-    def reset(): return reset0(numSheeps)
+    def reset(): return reset0(numSheeps + numDistractors)
     # reset = ResetMultiAgentChasing(numAgents, numBlocks)
 
-    def observeOneAgent(agentID): return Observe(agentID, wolvesID, sheepsID, blocksID, getPosFromAgentState, getVelFromAgentState)
+    def observeOneAgent(agentID): return Observe(agentID, wolvesID, sheepsID + distractorsID, blocksID, getPosFromAgentState, getVelFromAgentState)
 
     def observe(state): return [observeOneAgent(agentID)(state) for agentID in range(numAgents)]
 
@@ -187,14 +197,14 @@ def main():
     def checkAllAgents(states): return [checkBoudary(agentState) for agentState in states]
     reshapeAction = ReshapeAction()
     getCollisionForce = GetCollisionForce()
-    applyActionForce = ApplyActionForce(wolvesID, sheepsID, entitiesMovableList)
+    applyActionForce = ApplyActionForce(wolvesID, sheepsID + distractorsID, entitiesMovableList)
     applyEnvironForce = ApplyEnvironForce(numEntities, entitiesMovableList, entitiesSizeList, getCollisionForce, getPosFromAgentState)
     integrateState = IntegrateState(numEntities, entitiesMovableList, massList, entityMaxSpeedList, getVelFromAgentState, getPosFromAgentState)
     # transit = TransitMultiAgentChasingForExp(reshapeAction, applyActionForce, applyEnvironForce, integrateState,checkAllAgents)
     reshapeAction = ReshapeActionVariousForce()
     expTransit = TransitMultiAgentChasingForExpVariousForce(reshapeAction, reshapeAction, applyActionForce, applyEnvironForce, integrateState, checkAllAgents)
 
-    def transit(state, actions): return expTransit(state, actions[0:numWolves], actions[-numSheeps:], wolfForce, sheepForce)
+    def transit(state, actions): return expTransit(state, actions[0:numWolves], actions[numWolves:], wolfForce, sheepForce)
 
     def isTerminal(state): return [False] * numAgents
     initObsForParams = observe(reset())
@@ -238,7 +248,7 @@ def main():
     getModelList = [getAgentModel(i) for i in range(numAgents)]
     modelSaveRate = 2000
     fileName = "maddpg{}wolves{}sheep{}distracors{}blocks{}episodes{}individ{}_agent".format(
-        numWolves, numSheeps,numDistractiors, numBlocks, maxEpisode, maxTimeStep, individualRewardWolf)
+        numWolves, numSheeps, numDistractors, numBlocks, maxEpisode, maxTimeStep, individualRewardWolf)
 
     # folderName = 'maddpg_10reward_full'
     modelPath = os.path.join(modelFolder, fileName)
